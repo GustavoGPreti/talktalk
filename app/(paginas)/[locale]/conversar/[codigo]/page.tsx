@@ -34,6 +34,10 @@ import LanguageDetector from '../../../../components/functionals/LanguageDetecto
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * The main page for a chat room.
+ * It handles user authentication, socket connection, and chat functionality.
+ */
 export default function RoomPage() {
   const params = useParams();
   const { t } = useTranslation('');
@@ -45,7 +49,7 @@ export default function RoomPage() {
     value: 'pt-BR',
     flag: 'BR',
   });
-  const [socketClient, setSocketClient] = useState<Socket | null>(null);  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error' | 'checking'>(
+  const [socketClient, setSocketClient] = useState<Socket | null>(null);  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error' | 'checking'>( 
     'disconnected'
   );
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -73,7 +77,7 @@ export default function RoomPage() {
   const [selectedIndex, setSelectedIndex] = useState<number | undefined>(undefined);
   const [showUserAlreadyInRoom, setShowUserAlreadyInRoom] = useState(false);
   const [apelido, setApelido] = useState('');
-  const [avatarDetails, setAvatarDetails] = useState<{ avatarURL: string; avatarName: string }>({
+  const [avatarDetails, setAvatarDetails] = useState<{ avatarURL: string; avatarName: string }>({ 
     avatarURL: '',
     avatarName: '',
   });
@@ -130,7 +134,7 @@ export default function RoomPage() {
           onLinguaChange(settings.linguaSelecionada.value);
         }
       } catch (error) {
-        console.error('Erro ao carregar configurações de idioma:', error);
+        console.error('Error loading language settings:', error);
       }
     } else {
       // Initialize with default language if no settings exist
@@ -166,13 +170,13 @@ export default function RoomPage() {
             setShowNameInput(false);
           });
           socket.on('connect_error', (error) => {
-            console.error('[DEBUG] Erro de conexão do socket:', error);
-            console.error('[DEBUG] Socket URL tentada:', socketUrl);
-            console.error('[DEBUG] Tipo do erro:', (error as any)?.type);
-            console.error('[DEBUG] Descrição do erro:', (error as any)?.description);
-            console.error('[DEBUG] Context do erro:', (error as any)?.context);
-            console.error('[DEBUG] Configurações do socket:', {
-              // url: socket.io.uri, // Removido pois é privado
+            console.error('[DEBUG] Socket connection error:', error);
+            console.error('[DEBUG] Socket URL attempted:', socketUrl);
+            console.error('[DEBUG] Error type:', (error as any)?.type);
+            console.error('[DEBUG] Error description:', (error as any)?.description);
+            console.error('[DEBUG] Error context:', (error as any)?.context);
+            console.error('[DEBUG] Socket settings:', {
+              // url: socket.io.uri, // Removed as it is private
               transports: socket.io.opts.transports,
               timeout: socket.io.opts.timeout,
               withCredentials: socket.io.opts.withCredentials,
@@ -181,7 +185,7 @@ export default function RoomPage() {
             });
             setConnectionStatus('error');
 
-            // Tentar fallback para polling apenas
+            // Try fallback to polling only
             const currentTransports = socket.io.opts.transports;
             if (
               currentTransports &&
@@ -192,16 +196,16 @@ export default function RoomPage() {
               setConnectionStatus('connecting');
               socket.connect();
             } else {
-              // Se já tentamos polling e falhou, mostrar erro
-              console.error('[DEBUG] Fallback para polling também falhou');
+              // If we already tried polling and it failed, show error
+              console.error('[DEBUG] Fallback to polling also failed');
               setErrorMessage(t('chat.erros.servidor_indisponivel'));
               setShowErrorModal(true);
             }
           });
 
           socket.on('error', (error) => {
-            console.error('[DEBUG] Erro do socket:', error);
-            console.error('[DEBUG] Detalhes do erro:', {
+            console.error('[DEBUG] Socket error:', error);
+            console.error('[DEBUG] Error details:', {
               message: error.message,
               type: error.type,
               description: error.description,
@@ -235,7 +239,7 @@ export default function RoomPage() {
 
         const payloadEncrypted = await criptografarUserData(payload);
 
-        // Salva cookies e dados do usuário
+        // Save cookies and user data
         setCookies('talktalk_userdata', payloadEncrypted.data, {
           expires: undefined,
           sameSite: 'strict',
@@ -245,12 +249,12 @@ export default function RoomPage() {
         const roomPayload = { token: sala.token, hostToken: sala.hostToken };
         const roomPayloadEncrypted = await criptografar(JSON.stringify(roomPayload));
 
-        // Salva cookies e dados do usuário
+        // Save cookies and user data
         setCookies('talktalk_roomid', roomPayloadEncrypted.data, {
           expires: undefined,
           sameSite: 'strict',
           path: '/',
-        }); // Define os dados do usuário antes de criar o socket
+        }); // Define user data before creating the socket
         setUserData(payload);
 
         // Add fallback values for environment variables
@@ -271,7 +275,7 @@ export default function RoomPage() {
           autoConnect: false,
         });
 
-        // Configura os eventos antes de conectar
+        // Configure events before connecting
         socket.once('connect', () => {
           const userDataString = JSON.stringify(payload);
           socket.emit('join-room', codigo, userDataString, locale);
@@ -279,16 +283,16 @@ export default function RoomPage() {
         });
 
         socket.on('connect_error', (error) => {
-          console.error('[DEBUG] Erro de conexão do socket:', error);
+          console.error('[DEBUG] Socket connection error:', error);
           setErrorMessage(t('chat.erros.erro_conexao_servidor'));
           setShowErrorModal(true);
         });
 
         socket.on('error', (error) => {
-          console.error('[DEBUG] Erro do socket:', error);
-          if (error.includes('cheia')) {
+          console.error('[DEBUG] Socket error:', error);
+          if (error.includes('full')) {
             setErrorMessage(t('chat.erros.sala_cheia'));
-          } else if (error.includes('não encontrada')) {
+          } else if (error.includes('not found')) {
             setErrorMessage(t('chat.erros.sala_nao_encontrada'));
           } else {
             setErrorMessage(t('chat.erros.erro_conectar_sala') + ' ' + error);
@@ -298,27 +302,11 @@ export default function RoomPage() {
         socket.connect();
         setSocketClient(socket);
       } catch (error) {
-        console.error('[DEBUG] Erro em connectToRoom:', error);
+        console.error('[DEBUG] Error in connectToRoom:', error);
       }
     },
     [userName, avatarDetails, avatarColor, codigo, setCookies, socketClient]
   );
-
-  // useEffect(() => {
-  //   const savedSettings = localStorage.getItem('talktalk_user_settings');
-  //   if (savedSettings) {
-  //     const settings = JSON.parse(savedSettings);
-  //     if (settings.linguaSelecionada) {
-  //       setLinguaSelecionada(settings.linguaSelecionada);
-  //       onLinguaChange(settings.linguaSelecionada.value);
-  //     }
-  //     if (settings.avatarDetails) {
-  //       setAvatarDetails(settings.avatarDetails);
-  //     }
-  //     if (settings.avatarColor) {
-  //       setAvatarColor(settings.avatarColor);
-  //     }  //   }
-  // }, [ onLinguaChange]);
 
   const fetchSala = useCallback(async () => {
     try {
@@ -335,7 +323,7 @@ export default function RoomPage() {
       const userData = cookies.talktalk_userdata;
       const roomToken = cookies.talktalk_roomid;
 
-      // Se não há dados de usuário, mostra o input apenas uma vez
+      // If there is no user data, show the input only once
       if (userData == undefined || roomToken == undefined) {
         if (!showNameInput) {
           setShowNameInput(true);
@@ -349,7 +337,7 @@ export default function RoomPage() {
         const isValidRoom = sala.token == userDataDecrypt.data.token;
 
         if (!userDataDecrypt || !userDataDecrypt.data.apelido || !userDataDecrypt.data.userToken || !isValidRoom) {
-          // Limpa cookies inválidos e mostra input
+          // Clear invalid cookies and show input
           document.cookie = 'talktalk_userdata=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           document.cookie = 'talktalk_roomid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           if (!showNameInput) {
@@ -378,8 +366,8 @@ export default function RoomPage() {
         setShowNameInput(false);
         connectToRoom(true);
       } catch (error) {
-        console.error('Erro ao descriptografar dados do usuário:', error);
-        // Limpa cookies inválidos e mostra input
+        console.error('Error decrypting user data:', error);
+        // Clear invalid cookies and show input
         document.cookie = 'talktalk_userdata=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         document.cookie = 'talktalk_roomid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         if (!showNameInput) {
@@ -387,7 +375,7 @@ export default function RoomPage() {
         }
       }
     } catch (error) {
-      console.error('Erro ao buscar sala:', error);
+      console.error('Error fetching room:', error);
       setShowErrorModal(true);
     }
   }, [codigo, connectToRoom, cookies.talktalk_userdata, cookies.talktalk_roomid, showNameInput]);
@@ -415,13 +403,13 @@ export default function RoomPage() {
   useEffect(() => {
     if (!socketClient) return;
     
-    // Função para verificar status e reconectar se necessário
+    // Function to check status and reconnect if necessary
     const ensureConnection = () => {
       if (socketClient.disconnected) {
         setConnectionStatus('connecting');
         socketClient.connect();
         
-        // Aguarda um pouco e verifica se conseguiu conectar
+        // Wait a bit and check if it was able to connect
         setTimeout(() => {
           if (socketClient.connected && userData) {
             const userDataString = JSON.stringify(userData);
@@ -431,7 +419,7 @@ export default function RoomPage() {
       }
     };
 
-    // Verifica conexão imediatamente
+    // Check connection immediately
     ensureConnection();
     
     const handleConnect = () => {
@@ -465,7 +453,7 @@ export default function RoomPage() {
             }
           }
         } catch (error) {
-          console.error('Erro ao processar dados do usuário:', error);
+          console.error('Error processing user data:', error);
         }
       }
       setUsersRoomData(usersMap);
@@ -498,7 +486,7 @@ export default function RoomPage() {
           setPessoasConectadas((prev) => prev - 1);
         }
       } catch (error) {
-        console.error('Erro ao processar desconexão do usuário:', error);
+        console.error('Error processing user disconnection:', error);
       }
     };
 
@@ -636,7 +624,7 @@ export default function RoomPage() {
       }, 60000);
     } catch (error) {
       console.error('Error recording audio:', error);
-      toast.error('Erro ao gravar áudio. Verifique as permissões do microfone.');
+      toast.error('Error recording audio. Check microphone permissions.');
       setIsRecording(false);
     }
   };
@@ -646,12 +634,12 @@ export default function RoomPage() {
       ? linguagens.filter((idioma) =>
           idioma.label
             .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[̀-ͯ]/g, '')
             .toLowerCase()
             .includes(
               languagesFilterDebounced
                 .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[̀-ͯ]/g, '')
                 .toLowerCase()
             )
         )
@@ -662,8 +650,8 @@ export default function RoomPage() {
     const englishName = RandomNicks.getEnglish(randomAnimal);
 
     if (!englishName) {
-      console.error(`Apelido "${randomAnimal}" não encontrado.`);
-      return ''; // Retorna uma string vazia como valor padrão
+      console.error(`Nickname "${randomAnimal}" not found.`);
+      return ''; // Returns an empty string as a default value
     }
 
     const imageUrl = `/images/avatars/${englishName.toLowerCase()}.png`;
@@ -674,7 +662,7 @@ export default function RoomPage() {
   useEffect(() => {
     getRandomAvatar();
     setAvatarColor(RandomAvatarColor.get().hex);
-  }, [getRandomAvatar]);
+  }, [getRandom]);
 
   const handleSelectColor = useCallback(
     (color: string) => {
@@ -692,7 +680,7 @@ export default function RoomPage() {
     const handleDisconnect = (reason: string) => {
       setConnectionStatus('disconnected');
 
-      // Se for desconexão por timeout, tenta reconectar
+      // If it is a timeout disconnection, try to reconnect
       if (reason === 'io server disconnect' || reason === 'transport close' || reason === 'ping timeout') {
         if (reconnectAttempts < maxReconnectAttempts) {
           setConnectionStatus('connecting');
@@ -701,8 +689,8 @@ export default function RoomPage() {
               socketClient.connect();
               reconnectAttempts++;
             },
-            1000 * Math.min(reconnectAttempts + 1, 5)
-          ); // Backoff exponencial
+            1000 * Math.min(reconnectAttempts + 1, 5) // Exponential backoff
+          );
         } else {
           setConnectionStatus('error');
         }
@@ -710,7 +698,7 @@ export default function RoomPage() {
     };
 
     const handleReconnect = (attempt: number) => {
-      reconnectAttempts = 0; // Reseta contador após reconexão bem sucedida
+      reconnectAttempts = 0; // Reset counter after successful reconnection
       setConnectionStatus('connected');
       socketClient.emit('join-room', codigo);
     };
@@ -724,11 +712,11 @@ export default function RoomPage() {
     };
 
     const handleConnectError = (error: any) => {
-      console.error('[DEBUG] Erro de conexão no useEffect:', error);
+      console.error('[DEBUG] Connection error in useEffect:', error);
       setConnectionStatus('error');
     };
 
-    // Verifica status inicial do socket
+    // Check initial socket status
     if (socketClient.connected) {
       setConnectionStatus('connected');
     }
@@ -739,7 +727,7 @@ export default function RoomPage() {
     socketClient.on('reconnect', handleReconnect);
     socketClient.on('connect_error', handleConnectError);
     socketClient.on('reconnect_error', (error) => {
-      console.error('[DEBUG] Erro na reconexão:', error);
+      console.error('[DEBUG] Reconnection error:', error);
       setConnectionStatus('error');
     });
     return () => {
@@ -750,11 +738,11 @@ export default function RoomPage() {
       socketClient.off('connect_error', handleConnectError);
       socketClient.off('reconnect_error');
     };
-  }, [socketClient, codigo]);  // Verificação automática do status de conexão na entrada da sala
+  }, [socketClient, codigo]);  // Automatic connection status check when entering the room
   useEffect(() => {
     if (!socketClient || !userData) return;
 
-    // Função para verificar status inicial e tentar reconexão se necessário
+    // Function to check initial status and try to reconnect if necessary
     const checkInitialConnectionStatus = () => {
       const realStatus = socketClient.connected
         ? 'connected'
@@ -762,7 +750,7 @@ export default function RoomPage() {
           ? 'disconnected'
           : 'connecting';
 
-        // Se o usuário entrou na sala desconectado, tenta reconectar automaticamente
+        // If the user entered the room disconnected, try to reconnect automatically
       if (realStatus === 'disconnected') {
         setConnectionStatus('checking');
 
@@ -770,7 +758,7 @@ export default function RoomPage() {
           setConnectionStatus('connecting');
           socketClient.connect();
           
-          // Aguarda conexão e tenta entrar na sala
+          // Wait for connection and try to enter the room
           const reconnectionTimeout = setTimeout(() => {
             if (socketClient.connected) {
               const userDataString = JSON.stringify(userData);
@@ -781,7 +769,7 @@ export default function RoomPage() {
             }
           }, 2000);
 
-          // Limpeza do timeout se o componente for desmontado
+          // Cleanup timeout if the component is unmounted
           return () => clearTimeout(reconnectionTimeout);
           
         } catch (error) {
@@ -794,18 +782,18 @@ export default function RoomPage() {
       }
     };
 
-    // Executa verificação inicial após um pequeno delay para garantir que o socket foi inicializado
+    // Execute initial check after a short delay to ensure the socket has been initialized
     const initialCheckTimeout = setTimeout(checkInitialConnectionStatus, 500);
 
     return () => clearTimeout(initialCheckTimeout);
   }, [socketClient, userData, codigo, locale, t]);
 
-  // Verificação periódica do status real da conexão e tentativa de reconexão automática
+  // Periodic check of the actual connection status and automatic reconnection attempt
   useEffect(() => {
     if (!socketClient) return;
 
     let disconnectedCount = 0;
-    const maxDisconnectedChecks = 3; // Permite 3 verificações consecutivas de desconexão antes de tentar reconectar
+    const maxDisconnectedChecks = 3; // Allows 3 consecutive disconnection checks before trying to reconnect
     let reconnectionAttempts = 0;
     const maxReconnectionAttempts = 3;
 
@@ -819,11 +807,11 @@ export default function RoomPage() {
       setConnectionStatus((prevStatus) => {
         if (prevStatus !== realStatus) {
           
-          // Se mudou para desconectado, incrementa contador
+          // If it changed to disconnected, increment counter
           if (realStatus === 'disconnected') {
             disconnectedCount++;
           } else if (realStatus === 'connected') {
-            // Se conectou, reseta contadores
+            // If connected, reset counters
             disconnectedCount = 0;
             reconnectionAttempts = 0;
           }
@@ -833,19 +821,19 @@ export default function RoomPage() {
         return prevStatus;
       });
 
-      // Se usuário está desconectado por várias verificações consecutivas, tenta reconectar
+      // If user is disconnected for several consecutive checks, try to reconnect
       if (realStatus === 'disconnected' && disconnectedCount >= maxDisconnectedChecks && reconnectionAttempts < maxReconnectionAttempts) {
         reconnectionAttempts++;
-        disconnectedCount = 0; // Reseta contador para dar nova chance
+        disconnectedCount = 0; // Reset counter to give a new chance
         
         setConnectionStatus('connecting');
         
-        // Tenta reconectar
+        // Try to reconnect
         try {
           if (socketClient.disconnected) {
             socketClient.connect();
             
-            // Se tiver userData, tenta reentrar na sala
+            // If it has userData, try to re-enter the room
             setTimeout(() => {
               if (socketClient.connected && userData) {
                 const userDataString = JSON.stringify(userData);
@@ -854,17 +842,17 @@ export default function RoomPage() {
             }, 1000);
           }
         } catch (error) {
-          console.error('[DEBUG] Erro durante tentativa de reconexão:', error);
+          console.error('[DEBUG] Error during reconnection attempt:', error);
           setConnectionStatus('error');
         }      } else if (realStatus === 'disconnected' && reconnectionAttempts >= maxReconnectionAttempts) {
         setConnectionStatus('error');
       }
     };
 
-    // Verifica o status a cada 3 segundos (mais frequente para detecção rápida)
+    // Check the status every 3 seconds (more frequent for fast detection)
     const statusInterval = setInterval(checkConnectionStatus, 3000);
 
-    // Verifica imediatamente
+    // Check immediately
     checkConnectionStatus();
 
     return () => {
@@ -873,11 +861,11 @@ export default function RoomPage() {
   }, [socketClient, codigo, userData, locale, t]);
   // Toast notifications for connection status changes
   useEffect(() => {
-    // Mantém apenas notificações para erros críticos persistentes
+    // Keep only notifications for persistent critical errors
     if (connectionStatus === 'error') {
       toast.error(t('chat.status_conexao.erro_persistente'), {
         position: 'bottom-right',
-        autoClose: 0, // Não remove automaticamente para erros críticos
+        autoClose: 0, // Do not remove automatically for critical errors
       });
     }
   }, [connectionStatus, t]);
@@ -904,22 +892,22 @@ export default function RoomPage() {
     }
   };
 
-  // Função para forçar reconexão manual
+  // Function to force manual reconnection
   const forceReconnect = useCallback(() => {
     if (!socketClient) return;
     
     setConnectionStatus('connecting');
     
-    // Desconecta primeiro se ainda estiver conectado
+    // Disconnect first if still connected
     if (socketClient.connected) {
       socketClient.disconnect();
     }
     
-    // Aguarda um pouco e tenta reconectar
+    // Wait a bit and try to reconnect
     setTimeout(() => {
       socketClient.connect();
       
-      // Tenta reentrar na sala após conectar
+      // Try to re-enter the room after connecting
       setTimeout(() => {
         if (socketClient.connected && userData) {
           const userDataString = JSON.stringify(userData);
@@ -932,7 +920,7 @@ export default function RoomPage() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
         <LanguageDetector />
-        <h2 className="text-2xl font-bold">{errorMessage.includes('cheia') ? 'Sala Cheia!' : 'Erro na Sala'}</h2>
+        <h2 className="text-2xl font-bold">{errorMessage.includes('full') ? 'Room Full!' : 'Room Error'}</h2>
         <p className="mt-2 text-gray-600">{errorMessage}</p>{' '}
         <Button className="mt-4" onClick={() => router.push(`/${locale}/conversar`)}>
           {t('chat.interface.voltar_pagina_sala')}
@@ -976,7 +964,7 @@ export default function RoomPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.8, type: 'spring' }}
           >
-        Bem-vindo à sala!
+        Welcome to the room!
           </motion.h2>
           <motion.div
         className="relative group"
@@ -1022,7 +1010,7 @@ export default function RoomPage() {
             d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
           />
             </svg>
-            <span className="text-xs mt-1">Mudar cor</span>
+            <span className="text-xs mt-1">Change color</span>
           </div>
         </motion.button>
           </motion.div>
@@ -1036,7 +1024,7 @@ export default function RoomPage() {
           className="w-3 h-3 rounded-full border-2 border-white shadow-md"
           style={{ backgroundColor: avatarColor }}
         />
-        <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Cor selecionada</span>
+        <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Selected color</span>
           </motion.div>
           <motion.p
         className="text-gray-600 dark:text-gray-300 font-medium text-base relative z-10"
@@ -1044,7 +1032,7 @@ export default function RoomPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
           >
-        Para entrar na sala, digite um apelido (opcional):
+        To enter the room, enter a nickname (optional):
           </motion.p>
           <motion.div
         className="w-full relative"
@@ -1055,7 +1043,7 @@ export default function RoomPage() {
         <input
           type="text"
           className="w-full px-4 py-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/40 dark:border-gray-600/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/90 dark:focus:bg-gray-800/90 transition-all duration-500 text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 text-base shadow-lg hover:shadow-xl"
-          placeholder="Seu nome"
+          placeholder="Your name"
           value={userName}
           onChange={handleNameInputChange}
         />
@@ -1105,7 +1093,7 @@ export default function RoomPage() {
             className="w-full bg-gradient-to-r from-blue-500 via-purple-600 to-blue-500 hover:from-blue-600 hover:via-purple-700 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-white/20 backdrop-blur-sm relative overflow-hidden group text-base"
             size="md"
           >
-            <span className="relative z-10">Entrar na Sala</span>
+            <span className="relative z-10">Enter Room</span>
             <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </Button>
         </motion.div>
@@ -1151,7 +1139,7 @@ export default function RoomPage() {
                 >
                   <div className="relative">
                     <h1 className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent pt-4">
-                      VOCÊ É O ANFITRIÃO DA SALA! <span className="text-white">👑</span>
+                      YOU ARE THE HOST OF THE ROOM! <span className="text-white">👑</span>
                     </h1>
                   </div>
                   <h2 className="text-xl text-gray-700 dark:text-gray-300">{t('chat.compartilhar.descricao')}</h2>
@@ -1169,7 +1157,7 @@ export default function RoomPage() {
                             {c}
                           </motion.span>
                         ))}
-                        <CopyButton copy={codigo} text="Copiar" sucessText="Copiado!" />
+                        <CopyButton copy={codigo} text="Copy" sucessText="Copied!" />
                       </h3>
                     </div>
                     <motion.span
@@ -1178,7 +1166,7 @@ export default function RoomPage() {
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.5 }}
                     >
-                      OU
+                      OR
                     </motion.span>
                     <motion.div
                       className="flex gap-2 items-center"
@@ -1191,8 +1179,8 @@ export default function RoomPage() {
                       </span>
                       <CopyButton
                         copy={process.env.NEXT_PUBLIC_VERCEL_URL + '/conversar/' + codigo}
-                        text="Copiar"
-                        sucessText="Copiado!"
+                        text="Copy"
+                        sucessText="Copied!"
                       />
                     </motion.div>
                   </div>
@@ -1203,7 +1191,7 @@ export default function RoomPage() {
                   className="!w-[75%] bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                   onPress={() => setHostModal(false)}
                 >
-                  Fechar
+                  Close
                 </Button>
               </ModalFooter>
             </>
@@ -1232,14 +1220,14 @@ export default function RoomPage() {
                   >
                     <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
                   </svg>
-                  <span className="hidden sm:inline">COMPARTILHAR</span>
+                  <span className="hidden sm:inline">SHARE</span>
                   <span className="sm:hidden">SHARE</span>
                 </Button>
               </motion.div>
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
                 {' '}
                 <IoSettingsSharp
-                  size={24} /* Reduzido de 32 para 24 em telas pequenas */
+                  size={24} /* Reduced from 32 to 24 on small screens */
                   className="text-slate-600 dark:text-slate-300 cursor-pointer lg:hidden hover:text-primary-500 dark:hover:text-primary-400 transition-colors duration-300 hover:scale-110 transform"
                   onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                 />
@@ -1318,7 +1306,7 @@ export default function RoomPage() {
                           className="text-xs sm:text-sm font-medium"
                           style={{ color: usersRoomData[userToken].color }}
                         >
-                          {usersRoomData[userToken].apelido} está digitando...
+                          {usersRoomData[userToken].apelido} is typing...
                         </motion.span>
                       </motion.div>
                     )
@@ -1365,8 +1353,7 @@ export default function RoomPage() {
                 isIconOnly
                 onClick={recAudio}
                 color={isRecording ? 'danger' : 'primary'}
-                className={`${
-                  isRecording
+                className={`${isRecording
                     ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
                     : 'bg-gradient-to-r from-primary-500 to-secondary-600 hover:from-primary-600 hover:to-secondary-700'
                 } text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl w-12 h-12 sm:w-14 sm:h-14`}
@@ -1392,8 +1379,7 @@ export default function RoomPage() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className={`
           lg:relative lg:w-[400px] lg:flex lg:flex-col lg:h-full
-          ${
-            isSettingsOpen
+          ${isSettingsOpen
               ? 'fixed inset-2 sm:inset-4 md:inset-6 lg:inset-auto z-50 lg:z-0 flex flex-col'
               : 'hidden lg:flex'
           }
@@ -1413,7 +1399,7 @@ export default function RoomPage() {
                 transition={{ delay: 0.3 }}
               >
                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-xs md:text-sm lg:text-base">
-                  CONFIGURAÇÕES DA SALA
+                  ROOM SETTINGS
                 </span>
                 <motion.button
                   className="lg:hidden p-1.5 md:p-2 hover:bg-white/20 dark:hover:bg-gray-700/20 rounded-full transition-colors duration-300"
@@ -1448,8 +1434,7 @@ export default function RoomPage() {
                     <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 rounded-xl p-3 md:p-4 shadow-md">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-3 h-3 rounded-full ${
-                            connectionStatus === 'connected'
+                          className={`w-3 h-3 rounded-full ${connectionStatus === 'connected'
                               ? 'bg-green-500 animate-pulse'
                               : connectionStatus === 'connecting'
                                 ? 'bg-yellow-500 animate-pulse'
@@ -1468,7 +1453,7 @@ export default function RoomPage() {
                             {connectionStatus === 'error' && t('chat.status_conexao.erro')}
                             {connectionStatus === 'disconnected' && t('chat.status_conexao.desconectado')}
                           </p>
-                        </div>                        {/* Botão de reconexão manual para quando há erro */}
+                        </div>                        {/* Manual reconnection button for when there is an error */}
                         {(connectionStatus === 'error' || connectionStatus === 'disconnected') && (
                           <Button
                             size="sm"
@@ -1524,7 +1509,7 @@ export default function RoomPage() {
                           {t('chat.configuracoes.idioma.label')}
                         </p>
                         <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Selecione para qual língua as mensagens serão traduzidas
+                          Select which language the messages will be translated to
                         </p>
                       </div>
 
@@ -1550,9 +1535,7 @@ export default function RoomPage() {
                           </svg>
                         </motion.button>
                         <motion.div
-                          className={`absolute z-30 w-full mt-1 rounded-lg bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-white/40 dark:border-gray-700/40 shadow-2xl ${
-                            isOpen ? 'block' : 'hidden'
-                          }`}
+                          className={`absolute z-30 w-full mt-1 rounded-lg bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-white/40 dark:border-gray-700/40 shadow-2xl ${isOpen ? 'block' : 'hidden'}`}
                           style={{ zIndex: 100 }}
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: isOpen ? 1 : 0, y: isOpen ? 0 : -10 }}
@@ -1612,8 +1595,7 @@ export default function RoomPage() {
                                         setIsOpen(false);
                                         setLanguagesFilter('');
                                       }}
-                                      className={`block w-full px-4 py-3 hover:bg-blue-500/10 dark:hover:bg-blue-400/10 text-left transition-colors duration-200 ${
-                                        index === selectedIndex
+                                      className={`block w-full px-4 py-3 hover:bg-blue-500/10 dark:hover:bg-blue-400/10 text-left transition-colors duration-200 ${index === selectedIndex
                                           ? 'bg-blue-500/20 dark:bg-blue-400/20 text-blue-600 dark:text-blue-400'
                                           : 'text-gray-700 dark:text-gray-300'
                                       }`}

@@ -2,38 +2,59 @@ import React, { useEffect, useState } from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody, Button, Tooltip } from "@heroui/react";
 import { useTranslation } from 'react-i18next';
 
+/**
+ * Defines the color palette for the application.
+ * Each color has a name used for i18n and a hex value.
+ */
 export const colors = [
-  // Nova paleta TalkTalk
-  { name: 'azul_claro_intenso', hex: '#38A3F5' },
-  { name: 'roxo_azulado', hex: '#786FF2' },
-  { name: 'azul_medio', hex: '#6F90F2' },
-  { name: 'azul_piscina', hex: '#6FE3F2' },
-  { name: 'lilas_vibrante', hex: '#A46FF2' },
-  { name: 'azul_bem_claro', hex: '#BFCCF2' },
+  // TalkTalk Palette
+  { name: 'intense_light_blue', hex: '#38A3F5' },
+  { name: 'bluish_purple', hex: '#786FF2' },
+  { name: 'medium_blue', hex: '#6F90F2' },
+  { name: 'pool_blue', hex: '#6FE3F2' },
+  { name: 'vibrant_lilac', hex: '#A46FF2' },
+  { name: 'very_light_blue', hex: '#BFCCF2' },
   
-  // Cores complementares
-  { name: 'tangerina', hex: '#FFDDC1' },
+  // Complementary Colors
+  { name: 'tangerine', hex: '#FFDDC1' },
   { name: 'coral', hex: '#FFABAB' },
-  { name: 'pessego', hex: '#FFC3A0' },
-  { name: 'rosa', hex: '#FF677D' },
-  { name: 'cinza_rosa', hex: '#D4A5A5' },
-  { name: 'violeta', hex: '#392F5A' },
-  { name: 'laranja', hex: '#F8B400' },
+  { name: 'peach', hex: '#FFC3A0' },
+  { name: 'pink', hex: '#FF677D' },
+  { name: 'pinkish_gray', hex: '#D4A5A5' },
+  { name: 'violet', hex: '#392F5A' },
+  { name: 'orange', hex: '#F8B400' },
   { name: 'fuchsia', hex: '#FF61A6' },
-  { name: 'roxo', hex: '#6A0572' },
-  { name: 'lavanda', hex: '#D5AAFF' },
-  { name: 'verde_claro', hex: '#B9FBC0' },
-  { name: 'ciano', hex: '#A0E7E5' },
-  { name: 'marrom', hex: '#786C3B' },
-  { name: 'verde_menta', hex: '#B9EBC1' },
+  { name: 'purple', hex: '#6A0572' },
+  { name: 'lavender', hex: '#D5AAFF' },
+  { name: 'light_green', hex: '#B9FBC0' },
+  { name: 'cyan', hex: '#A0E7E5' },
+  { name: 'brown', hex: '#786C3B' },
+  { name: 'mint_green', hex: '#B9EBC1' },
 ];
 
+/**
+ * Props for the ColorSelector component.
+ */
 interface ColorSelectorI {
+  /**
+   * Callback function triggered when a color is selected.
+   * @param color - The selected color's hex value.
+   */
   onSelectColor: (color: string) => void;
+  /**
+   * Callback function triggered when the modal is closed.
+   */
   onModalClose: () => void;
+  /**
+   * Boolean to control the visibility of the modal.
+   */
   isOpen: boolean;
 }
 
+/**
+ * A modal component that allows users to select a color from a predefined palette.
+ * It is accessible, supporting keyboard navigation and ARIA attributes.
+ */
 const ColorSelector: React.FC<ColorSelectorI> = ({ onSelectColor, onModalClose, isOpen }) => {
   const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(isOpen);

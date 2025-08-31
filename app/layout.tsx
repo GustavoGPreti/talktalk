@@ -12,7 +12,7 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Talk-Talk! - Tradução em Tempo Real | Converse em Qualquer Idioma',
   description: 'Talk-Talk! é uma ferramenta de tradução via bate-papo em tempo real. Quebre barreiras linguísticas e comunique-se facilmente com pessoas de todo o mundo.',
-  keywords: 'tradução em tempo real, chat multilíngue, comunicação global, quebra de barreiras linguísticas',
+  keywords: 'talktalk, talk-talk, tradução em tempo real, chat multilíngue, comunicação global, quebra de barreiras linguísticas',
   authors: [
     { name: 'Kaike da Silva Sathler', url: 'http://lattes.cnpq.br/2952383935652833' },
     { name: 'Christopher Rodrigues Gouveia', url: 'http://lattes.cnpq.br/3214554816480546' },
@@ -23,7 +23,14 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     title: 'Talk-Talk! - Tradução em Tempo Real',
     description: 'Ferramenta de tradução via bate-papo em tempo real para comunicação global',
-    images: [{ url: '/images/talktalk-og-image.jpg', width: 1200, height: 630, alt: 'Talk-Talk! Preview' }],
+    images: [
+      {
+        url: '/api/og',
+        width: 1200,
+        height: 630,
+        alt: 'Talk-Talk! Preview',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',

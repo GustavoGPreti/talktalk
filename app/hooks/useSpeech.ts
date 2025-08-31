@@ -21,13 +21,13 @@ export const useSpeech = () => {
     voice: '',
     autoRead: false,
   });
-  // Carregar vozes disponíveis
+  // Load available voices
   useEffect(() => {
     const loadVoices = () => {
       const availableVoices = window.speechSynthesis.getVoices();
       setVoices(availableVoices);
 
-      // Se ainda não há voz selecionada, escolhe a primeira disponível
+      // If no voice is selected yet, choose the first available one
       if (!settings.voice && availableVoices.length > 0) {
         setSettings(prev => ({
           ...prev,
@@ -39,7 +39,7 @@ export const useSpeech = () => {
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
-    // Carregar configurações salvas
+    // Load saved settings
     const savedSettings = localStorage.getItem(SPEECH_SETTINGS_KEY);
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings));
@@ -53,7 +53,7 @@ export const useSpeech = () => {
     };
   }, [settings.voice]);
 
-  // Salvar configurações quando mudarem
+  // Save settings when they change
   useEffect(() => {
     localStorage.setItem(SPEECH_SETTINGS_KEY, JSON.stringify(settings));
   }, [settings]);
@@ -61,17 +61,17 @@ export const useSpeech = () => {
   const speak = useCallback((text: string) => {
     if (!window.speechSynthesis) return;
 
-    // Cancelar qualquer fala anterior
+    // Cancel any previous speech
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Aplicar configurações
+
+    // Apply settings
     utterance.volume = settings.volume / 100;
     utterance.rate = settings.rate;
     utterance.pitch = settings.pitch;
 
-    // Encontrar e aplicar a voz selecionada
+    // Find and apply the selected voice
     const selectedVoice = voices.find(voice => voice.name === settings.voice);
     if (selectedVoice) {
       utterance.voice = selectedVoice;
