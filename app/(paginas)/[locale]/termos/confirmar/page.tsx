@@ -4,11 +4,16 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+/**
+ * A page component that requires the user to confirm acceptance of terms and privacy policy.
+ * It checks localStorage for existing consent and allows the user to confirm, which
+ * sets the consent in localStorage and redirects to the homepage.
+ */
 export default function ConfirmarPage() {
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
-    // Verifica se já foi confirmado anteriormente
+    // Checks if the terms have been previously accepted.
     const termsAccepted = localStorage.getItem('talktalk_terms_accepted');
     const privacyAccepted = localStorage.getItem('talktalk_privacy_accepted');
     
@@ -22,7 +27,7 @@ export default function ConfirmarPage() {
     localStorage.setItem('talktalk_privacy_accepted', 'true');
     setConfirmed(true);
     
-    // Redireciona após 2 segundos
+    // Redirects to the homepage after a 2-second delay.
     setTimeout(() => {
       window.location.href = '/';
     }, 2000);
@@ -45,11 +50,11 @@ export default function ConfirmarPage() {
             </div>
             
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Confirmação Necessária
+              Confirmation Required
             </h1>
             
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Para continuar usando o TalkTalk, você precisa aceitar nossos termos de uso e política de privacidade.
+              To continue using TalkTalk, you need to accept our terms of use and privacy policy.
             </p>
             
             <div className="space-y-4">
@@ -57,21 +62,21 @@ export default function ConfirmarPage() {
                 onClick={handleConfirm}
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
-                ✅ Aceitar e Continuar
+                ✅ Accept and Continue
               </button>
               
               <Link
                 href="/termos"
                 className="block w-full text-center px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
               >
-                📋 Ler Termos Completos
+                📋 Read Full Terms
               </Link>
               
               <Link
                 href="/"
                 className="block text-center text-gray-500 hover:text-gray-700 transition-colors"
               >
-                ← Voltar ao Início
+                ← Back to Home
               </Link>
             </div>
           </motion.div>
@@ -89,11 +94,11 @@ export default function ConfirmarPage() {
             </div>
             
             <h1 className="text-2xl font-bold text-green-600 mb-4">
-              ✅ Confirmado!
+              ✅ Confirmed!
             </h1>
             
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Obrigado! Seus termos foram aceitos. Redirecionando para a página inicial...
+              Thank you! Your terms have been accepted. Redirecting to the homepage...
             </p>
             
             <div className="flex justify-center">

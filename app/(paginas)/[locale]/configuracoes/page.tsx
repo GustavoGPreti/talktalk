@@ -53,7 +53,7 @@ const UserSettingsPage = () => {
     'ru-RU': 'Russo (Rússia)',
     'ar-SA': 'Árabe (Arábia Saudita)',
   };
-  // Estados para as configurações do usuário
+  // User settings states
   const [preferredLanguage, setPreferredLanguage] = useState('pt-BR');
   const [userName, setUserName] = useState('');
   const [userApelido, setUserApelido] = useState('');
@@ -64,7 +64,7 @@ const UserSettingsPage = () => {
   const [autoTranslate, setAutoTranslate] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
 
-  // Hook de síntese de voz
+  // Speech synthesis hook
   const { settings, updateSettings, speak } = useSpeech();
   const { settings: translationSettings, updateSettings: updateTranslationSettings } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
@@ -147,11 +147,11 @@ const UserSettingsPage = () => {
     speak('Olá! Esta é uma mensagem de teste para as configurações de voz.');
   };
   useEffect(() => {
-    // Atualiza o estado local com o valor do contexto quando a página carrega
+    // Updates local state with context value on page load
     setAutoTranslate(translationSettings.autoTranslate);
   }, [translationSettings.autoTranslate]);
 
-  // Função para atualizar a configuração de tradução automática
+  // Function to update auto-translate setting
   const handleAutoTranslateChange = useCallback(
     (value: boolean) => {
       setAutoTranslate(value);
@@ -188,7 +188,7 @@ const UserSettingsPage = () => {
 
     if (!englishName) {
       console.error(`Apelido "${randomAnimal}" não encontrado.`);
-      return ''; // Retorna uma string vazia como valor padrão
+      return ''; // Returns an empty string as default value
     }
 
     const imageUrl = `/images/avatars/${englishName.toLowerCase()}.png`;
@@ -651,7 +651,7 @@ const UserSettingsPage = () => {
                         <option value="">{t('chat.configuracoes.audio.voz.selecione')}</option>
                         {availableVoices
                           .sort((a, b) => {
-                            // Preferência para vozes em português
+                            // Preference for Portuguese voices
                             const aPt = a.lang && a.lang.startsWith('pt');
                             const bPt = b.lang && b.lang.startsWith('pt');
                             if (aPt && !bPt) return -1;

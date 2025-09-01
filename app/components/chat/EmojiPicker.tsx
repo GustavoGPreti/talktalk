@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BsEmojiSmile } from 'react-icons/bs';
 import { useTranslation } from 'react-i18next';
 
-// Importação dinâmica para evitar problemas de SSR
+// Dynamically import the EmojiPicker to prevent SSR issues and reduce initial bundle size.
 const EmojiPickerReact = dynamic(
   () => import('emoji-picker-react'),
   { 
@@ -16,11 +16,24 @@ const EmojiPickerReact = dynamic(
   }
 );
 
+/**
+ * Props for the EmojiPicker component.
+ */
 interface EmojiPickerProps {
+  /**
+   * Callback function triggered when an emoji is selected.
+   * @param emoji - The selected emoji character.
+   */
   onEmojiSelect: (emoji: string) => void;
+  /**
+   * Optional CSS class name for custom styling.
+   */
   className?: string;
 }
 
+/**
+ * Data structure for the emoji click event.
+ */
 interface EmojiClickData {
   emoji: string;
   activeSkinTone?: string;
@@ -30,6 +43,10 @@ interface EmojiClickData {
   names?: string[];
 }
 
+/**
+ * A component that provides an emoji picker in a popover.
+ * It is dynamically loaded to optimize performance.
+ */
 export default function EmojiPicker({ onEmojiSelect, className = "" }: EmojiPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -40,7 +57,7 @@ export default function EmojiPicker({ onEmojiSelect, className = "" }: EmojiPick
   useEffect(() => {
     setMounted(true);
     
-    // Set initial screen size and add resize listener
+    // Adjusts picker dimensions based on screen size.
     const updateScreenSize = () => {
       const isMobile = window.innerWidth < 768;
       setScreenSize({
@@ -55,7 +72,7 @@ export default function EmojiPicker({ onEmojiSelect, className = "" }: EmojiPick
     return () => window.removeEventListener('resize', updateScreenSize);
   }, []);
 
-  // Fechar picker ao clicar fora
+  // Effect to close the picker when clicking outside of it.
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
@@ -77,6 +94,7 @@ export default function EmojiPicker({ onEmojiSelect, className = "" }: EmojiPick
     setIsOpen(false);
   };
 
+  // Render a disabled button placeholder until the component is mounted on the client.
   if (!mounted) {
     return (
       <Button

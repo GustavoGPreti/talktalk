@@ -11,19 +11,38 @@ import { useTranslation } from '@/app/contexts/TranslationContext';
 import { useFontSize } from '@/app/contexts/FontSizeContext';
 import { useTranslation as useI18nTranslation } from 'react-i18next';
 
+/**
+ * Props for the Message component.
+ */
 interface MessageProps {
+  /** Whether the message is an audio message. */
   isAudio: boolean;
+  /** The content of the message. */
   children: React.ReactNode;
+  /** The date of the message. */
   date: string | Moment | Date;
+  /** The language of the message. */
   lingua: string;
+  /** Whether the message is from the current user. */
   ownMessage: boolean;
+  /** The original message content. */
   originalMessage: string;
+  /** The sender's nickname. */
   senderApelido: string;
+  /** The sender's avatar URL. */
   senderAvatar: string;
+  /** The sender's color. */
   senderColor: string;
+  /** Whether the message should be displayed in a compact format. */
   compact?: boolean;
 }
 
+/**
+ * A component that provides a microphone icon with play/pause functionality for text-to-speech.
+ * @param {object} props - The component props.
+ * @param {string | React.ReactNode} props.text - The text to be spoken.
+ * @param {boolean} [props.isOwnMessage=false] - Whether the message is from the current user.
+ */
 function MicComponent({ text, isOwnMessage = false }: { text: string | React.ReactNode; isOwnMessage?: boolean }) {
   const { settings } = useSpeech();
   const { t } = useI18nTranslation('');
@@ -32,17 +51,17 @@ function MicComponent({ text, isOwnMessage = false }: { text: string | React.Rea
   const [isNewMessage, setIsNewMessage] = React.useState(true);
   const speechRef = React.useRef<SpeechSynthesisUtterance | null>(null);
 
-  // Referência para armazenar metadados do componente de áudio
+  // Reference to store audio component metadata
   const micDataRef = React.useRef({
     isNewMessage: true,
     hasBeenRead: false,
     textKey: typeof text === 'string' ? text.slice(0, 20) : 'message',
   });
 
-  // Gerar um ID seguro para o componente
+  // Generate a secure ID for the component
   const micId = `mic-${Math.random().toString(36).substring(2, 7)}`;
 
-  // Referência para o elemento DOM
+  // Reference to the DOM element
   const micElementRef = React.useRef<HTMLDivElement>(null);
 
   const getSpeechContent = React.useCallback((input: string | React.ReactNode): string => {
@@ -108,19 +127,19 @@ function MicComponent({ text, isOwnMessage = false }: { text: string | React.Rea
       const progressValue = speechText ? (charIndex / speechText.length) * 100 : 0;
       setProgress(progressValue);
     };
-    // Auto-read somente se autoRead estiver habilitado, for uma mensagem nova E NÃO for mensagem própria
+    // Auto-read only if autoRead is enabled, it is a new message AND it is NOT the user's own message
     if (settings.autoRead && micDataRef.current.isNewMessage && !micDataRef.current.hasBeenRead && !isOwnMessage) {
       window.speechSynthesis.speak(utterance);
-      // Marcar como já lida para evitar releituras
+      // Mark as already read to avoid re-reading
       micDataRef.current.hasBeenRead = true;
       micDataRef.current.isNewMessage = false;
     }
     return () => {
       window.speechSynthesis.cancel();
     };
-  }, [speechText, settings, isOwnMessage]); // Adicionando isOwnMessage nas dependências
+  }, [speechText, settings, isOwnMessage]); // Adding isOwnMessage to the dependencies
 
-  // Sincronizar os dados com o elemento DOM para acesso externo
+  // Synchronize data with the DOM element for external access
   React.useEffect(() => {
     if (micElementRef.current) {
       (micElementRef.current as any).__micData = micDataRef.current;
@@ -168,6 +187,11 @@ function MicComponent({ text, isOwnMessage = false }: { text: string | React.Rea
   );
 }
 
+/**
+ * A component that displays an audio message.
+ * @param {object} props - The component props.
+ * @param {string} props.src - The source URL of the audio file.
+ */
 function AudioMessage({ src }: { src: string }) {
   const { settings } = useSpeech();
   const { t } = useI18nTranslation('');
@@ -190,6 +214,10 @@ function AudioMessage({ src }: { src: string }) {
   );
 }
 
+/**
+ * A component that displays a chat message.
+ * It can display text or audio messages, and it supports translation and text-to-speech.
+ */
 export default function Message({
   isAudio,
   children,
@@ -218,8 +246,7 @@ export default function Message({
     if (!ownMessage && !isAudio) {
       setShowOriginal(!translationSettings.autoTranslate);
 
-      // Quando a configuração de tradução automática é alterada, marcar todas as mensagens como não sendo mais novas
-      // para evitar releituras
+      // Prevents automatic re-reading of messages when changing the automatic translation setting.
       setTimeout(() => {
         document.querySelectorAll('[id^="mic-"]').forEach((micComponent) => {
           if ((micComponent as any).__micData) {
@@ -304,14 +331,11 @@ export default function Message({
                       <button
                         onClick={() => {
                           setShowOriginal(!showOriginal);
-                          // Quando o usuário muda o idioma manualmente, não queremos releitura
-                          // Procuramos por todos os componentes MIC na página
+                          // Prevents automatic re-reading when switching the translation view.
                           document.querySelectorAll('[id^="mic-"]').forEach((micComponent) => {
-                            // Marcamos que não são mais mensagens novas
-                            (micComponent as any).__micData = {
-                              ...(micComponent as any).__micData,
-                              isNewMessage: false,
-                            };
+                            if ((micComponent as any).__micData) {
+                              (micComponent as any).__micData.isNewMessage = false;
+                            }
                           });
                         }}
                         className="ml-1 text-xs text-primary-400 hover:text-primary-500 hover:underline"
@@ -361,14 +385,11 @@ export default function Message({
                         <button
                           onClick={() => {
                             setShowOriginal(!showOriginal);
-                            // Quando o usuário muda o idioma manualmente, não queremos releitura
-                            // Procuramos por todos os componentes MIC na página
+                            // Prevents automatic re-reading when switching the translation view.
                             document.querySelectorAll('[id^="mic-"]').forEach((micComponent) => {
-                              // Marcamos que não são mais mensagens novas
-                              (micComponent as any).__micData = {
-                                ...(micComponent as any).__micData,
-                                isNewMessage: false,
-                              };
+                              if ((micComponent as any).__micData) {
+                                (micComponent as any).__micData.isNewMessage = false;
+                              }
                             });
                           }}
                           className="ml-2 text-xs text-primary-400 hover:text-primary-500 hover:underline"

@@ -13,80 +13,79 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Nova paleta de cores TalkTalk
         primary: {
-          DEFAULT: '#38A3F5', // azul claro intenso
+          DEFAULT: '#38A3F5',
           50: '#EBF7FE',
           100: '#D7EFFD', 
           200: '#AFDFFA',
           300: '#87CFF7',
           400: '#5FBFF4',
-          500: '#38A3F5', // cor principal
+          500: '#38A3F5',
           600: '#2D82C4',
           700: '#226193',
           800: '#174162',
           900: '#0C2031',
         },
         secondary: {
-          DEFAULT: '#786FF2', // roxo azulado
+          DEFAULT: '#786FF2',
           50: '#F0EFFE',
           100: '#E1DFFD',
           200: '#C3BFFB',
           300: '#A59FF9',
           400: '#877FF7',
-          500: '#786FF2', // cor principal
+          500: '#786FF2',
           600: '#5F56C1',
           700: '#483E91',
           800: '#302760',
           900: '#180F30',
         },
         accent: {
-          DEFAULT: '#6F90F2', // azul médio
+          DEFAULT: '#6F90F2',
           50: '#EDEFFE',
           100: '#DBDFFE',
           200: '#B7BFFD',
           300: '#939FFC',
           400: '#6F7FFB',
-          500: '#6F90F2', // cor principal
+          500: '#6F90F2',
           600: '#5170C1',
           700: '#3D5491',
           800: '#293860',
           900: '#141C30',
         },
         cyan: {
-          DEFAULT: '#6FE3F2', // azul piscina
+          DEFAULT: '#6FE3F2',
           50: '#EDFDFF',
           100: '#DBFBFE',
           200: '#B7F7FD',
           300: '#93F3FC',
           400: '#6FEFFB',
-          500: '#6FE3F2', // cor principal
+          500: '#6FE3F2',
           600: '#59B6C1',
           700: '#438991',
           800: '#2D5C60',
           900: '#162E30',
         },
         purple: {
-          DEFAULT: '#A46FF2', // lilás vibrante
+          DEFAULT: '#A46FF2',
           50: '#F5EDFF',
           100: '#EBDBFE',
           200: '#D7B7FD',
           300: '#C393FC',
           400: '#AF6FFB',
-          500: '#A46FF2', // cor principal
+          500: '#A46FF2',
           600: '#8355C1',
           700: '#624091',
           800: '#412A60',
           900: '#201530',
         },
         light: {
-          DEFAULT: '#BFCCF2', // azul bem claro
+          DEFAULT: '#BFCCF2',
           50: '#F8FAFF',
           100: '#F1F5FE',
           200: '#E3EBFD',
           300: '#D5E1FC',
           400: '#C7D7FB',
-          500: '#BFCCF2', // cor principal
+          500: '#BFCCF2',
           600: '#99A3C1',
           700: '#737A91',
           800: '#4D5260',
