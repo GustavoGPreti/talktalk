@@ -57,6 +57,9 @@ export default function RoomPage() {
   const [hostModal, setHostModal] = useState<boolean>(false);
   const [cookies, setCookies] = useCookies(['talktalk_roomid', 'talktalk_userdata']);
   const messageListRef = useRef<HTMLDivElement>(null);
+  const [showGoToBottom, setShowGoToBottom] = useState(false);
+  // Scroll to bottom function
+  
   const [shiftPressed, setShiftPressed] = useState<boolean>(false);
   const [showNameInput, setShowNameInput] = useState(false);
   const [userName, setUserName] = useState('');
@@ -109,6 +112,43 @@ export default function RoomPage() {
     userData: userData || null,
     codigo: codigo,
   });
+  const scrollToBottom = useCallback(() => {
+    if (messageListRef.current) {
+      messageListRef.current.scrollTo({
+        top: messageListRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, []);
+
+  // Detect if user is at the bottom
+  useEffect(() => {
+    const ref = messageListRef.current;
+    if (!ref) return;
+    const handleScroll = () => {
+      // Só mostra se há overflow (scrollHeight > clientHeight)
+      const hasOverflow = ref.scrollHeight > ref.clientHeight + 5;
+      const atBottom = ref.scrollHeight - ref.scrollTop - ref.clientHeight < 10;
+      setShowGoToBottom(hasOverflow && !atBottom);
+    };
+    ref.addEventListener('scroll', handleScroll);
+    // Check on mount and when mensagens mudam
+    handleScroll();
+    return () => {
+      ref.removeEventListener('scroll', handleScroll);
+    };
+  }, [messageListRef, mensagens]);
+
+  // Auto-scroll to bottom when new messages arrive (if user was at bottom)
+  useEffect(() => {
+    const ref = messageListRef.current;
+    if (!ref) return;
+    // If user is at (or near) bottom, scroll to bottom on new message
+    const atBottom = ref.scrollHeight - ref.scrollTop - ref.clientHeight < 10;
+    if (atBottom) {
+      scrollToBottom();
+    }
+  }, [mensagens, scrollToBottom]);
 
   useEffect(() => {
     if (isOpen && languagesFilterRef.current) {
@@ -1235,84 +1275,100 @@ export default function RoomPage() {
             </ChatComponent.Settings>
           </ChatComponent.Header>{' '}
           <ChatComponent.Body className="flex-1 overflow-hidden bg-gradient-to-b from-white/30 to-gray-50/30 dark:from-gray-900/30 dark:to-gray-800/30">
-            <MessageList
-              ref={messageListRef}
-              className={`messageList h-full overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 ${chatCompacto ? 'chat-compact' : ''}`}
-            >
-              {mensagens.map((message, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Message
-                    date={message.date}
-                    lingua={message.lingua}
-                    ownMessage={message.senderId == userData?.userToken}
-                    originalMessage={message.message}
-                    senderApelido={message.senderApelido}
-                    senderAvatar={message.senderAvatar}
-                    senderColor={message.senderColor}
-                    compact={chatCompacto}
-                    isAudio={message.isAudio}
+            <div className="relative h-full">
+              <MessageList
+                ref={messageListRef}
+                className={`messageList h-full overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 ${chatCompacto ? 'chat-compact' : ''}`}
+              >
+                {mensagens.map((message, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
                   >
-                    {message.isAudio ? (
-                      <audio controls controlsList="nodownload" className="w-full rounded-lg">
-                        <source src={message.message} type="audio/webm" />
-                        Your browser does not support the audio element.
-                      </audio>
-                    ) : (
-                      message.messageTraduzido
-                    )}
-                  </Message>
-                </motion.div>
-              ))}
-              {messageLoading && (
-                <motion.div
-                  className="flex items-center justify-center p-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Spinner color="primary" size="lg" />
-                </motion.div>
-              )}
-              <AnimatePresence>
-                {usersTyping.map(
-                  ({ userToken, typing }) =>
-                    typing &&
-                    userToken !== userData?.userToken &&
-                    usersRoomData[userToken] && (
-                      <motion.div
-                        key={userToken}
-                        className="flex items-center justify-center gap-2 sm:gap-3 text-gray-500 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-2 sm:p-3 mx-2 sm:mx-4"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <Image
-                          src={usersRoomData[userToken].avatar}
-                          alt={usersRoomData[userToken].apelido}
-                          width={30}
-                          height={30}
-                          className="rounded-full border-2"
-                          style={{ borderColor: usersRoomData[userToken].color }}
-                        />{' '}
-                        <motion.span
-                          animate={{ opacity: [0.5, 1, 0.5] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                          className="text-xs sm:text-sm font-medium"
-                          style={{ color: usersRoomData[userToken].color }}
-                        >
-                          {usersRoomData[userToken].apelido} is typing...
-                        </motion.span>
-                      </motion.div>
-                    )
+                    <Message
+                      date={message.date}
+                      lingua={message.lingua}
+                      ownMessage={message.senderId == userData?.userToken}
+                      originalMessage={message.message}
+                      senderApelido={message.senderApelido}
+                      senderAvatar={message.senderAvatar}
+                      senderColor={message.senderColor}
+                      compact={chatCompacto}
+                      isAudio={message.isAudio}
+                    >
+                      {message.isAudio ? (
+                        <audio controls controlsList="nodownload" className="w-full rounded-lg">
+                          <source src={message.message} type="audio/webm" />
+                          Your browser does not support the audio element.
+                        </audio>
+                      ) : (
+                        message.messageTraduzido
+                      )}
+                    </Message>
+                  </motion.div>
+                ))}
+                {messageLoading && (
+                  <motion.div
+                    className="flex items-center justify-center p-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Spinner color="primary" size="lg" />
+                  </motion.div>
                 )}
-              </AnimatePresence>
-            </MessageList>
+                <AnimatePresence>
+                  {usersTyping.map(
+                    ({ userToken, typing }) =>
+                      typing &&
+                      userToken !== userData?.userToken &&
+                      usersRoomData[userToken] && (
+                        <motion.div
+                          key={userToken}
+                          className="flex items-center justify-center gap-2 sm:gap-3 text-gray-500 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-2 sm:p-3 mx-2 sm:mx-4"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <Image
+                            src={usersRoomData[userToken].avatar}
+                            alt={usersRoomData[userToken].apelido}
+                            width={30}
+                            height={30}
+                            className="rounded-full border-2"
+                            style={{ borderColor: usersRoomData[userToken].color }}
+                          />{' '}
+                          <motion.span
+                            animate={{ opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                            className="text-xs sm:text-sm font-medium"
+                            style={{ color: usersRoomData[userToken].color }}
+                          >
+                            {usersRoomData[userToken].apelido} está digitando...
+                          </motion.span>
+                        </motion.div>
+                      )
+                  )}
+                </AnimatePresence>
+              </MessageList>
+              {/* Go to bottom button */}
+              {showGoToBottom && (
+                <button
+                  onClick={scrollToBottom}
+                  className="absolute right-4 bottom-20 sm:bottom-8 z-50 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg p-3 flex items-center gap-2 hover:scale-105 transition-all duration-300"
+                  style={{ boxShadow: '0 4px 24px 0 rgba(80,80,200,0.15)' }}
+                  aria-label="Ir para o final do chat"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                  <span className="hidden sm:inline text-xs font-semibold">Ir para o final</span>
+                </button>
+              )}
+            </div>
           </ChatComponent.Body>{' '}
           <ChatComponent.Footer className="flex items-center gap-2 sm:gap-3 border-t border-white/20 dark:border-gray-700/30 p-3 sm:p-6 bg-gradient-to-r from-white/60 to-gray-50/60 dark:from-gray-900/60 dark:to-gray-800/60 backdrop-blur-sm">
             <div className="flex-1">
