@@ -1033,7 +1033,7 @@ export default function RoomPage() {
           alt="Avatar Preview"
           width={120}
           height={120}
-          className="rounded-full border-4 p-3 shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 relative z-10"
+          className="rounded-full border-4 p-3 shadow-2xl transition-all duration-500 dark:invert-0 invert group-hover:scale-110 group-hover:rotate-3 relative z-10"
           style={{
             borderColor: avatarColor,
             backgroundColor: `${avatarColor}20`,
@@ -1724,7 +1724,7 @@ export default function RoomPage() {
                           alt={user.apelido}
                           width={50}
                           height={50}
-                          className={`md:w-[60px] md:h-[60px] rounded-full border-2 p-1 md:p-2 bg-white dark:bg-transparent shadow-lg`}
+                          className={`md:w-[60px] md:h-[60px] rounded-full border-2 p-1 md:p-2 bg-white dark:bg-transparent dark:invert-0 invert shadow-lg`}
                           style={{ borderColor: user.color, backgroundColor: user.color }}
                         />
                       </div>

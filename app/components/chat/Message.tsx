@@ -233,9 +233,33 @@ export default function Message({
   const getMessageContent = (content: React.ReactNode): React.ReactNode => {
     return content;
   };
+  const [showAudioOriginal, setShowAudioOriginal] = useState(true);
   const renderContent = () => {
     if (isAudio) {
-      return <AudioMessage src={originalMessage} />;
+      return (
+        <div className="flex flex-col items-start w-full">
+          <AudioMessage src={originalMessage} />
+          {/* Só mostra as opções para quem recebe o áudio */}
+          {!ownMessage && (
+            <div className="flex gap-3 mt-2 w-full items-center">
+              <button
+                className="text-xs text-primary-400 hover:text-primary-500 hover:underline bg-transparent p-0 m-0 border-0 shadow-none"
+                style={{ minWidth: 0 }}
+                disabled
+              >
+                Transcrever áudio
+              </button>
+              <button
+                className="text-xs text-primary-400 hover:text-primary-500 hover:underline bg-transparent p-0 m-0 border-0 shadow-none ml-2"
+                type="button"
+                onClick={() => setShowAudioOriginal((prev) => !prev)}
+              >
+                {showAudioOriginal ? t('chat.mensagem.ver_traducao') : t('chat.mensagem.ver_original')}
+              </button>
+            </div>
+          )}
+        </div>
+      );
     }
     return showOriginal ? originalMessage : getMessageContent(children);
   };
@@ -263,7 +287,7 @@ export default function Message({
             alt={senderApelido}
             width={44}
             height={44}
-            className="rounded-full border-2 p-1 shadow-lg"
+            className="rounded-full border-2 p-1 dark:invert-0 invert shadow-lg"
             style={{ borderColor: senderColor }}
           />
         )}
@@ -275,13 +299,7 @@ export default function Message({
                 {senderApelido}:
               </span>{' '}
               <span className="text-sm">
-                {isAudio ? (
-                  <AudioMessage src={originalMessage} />
-                ) : showOriginal ? (
-                  originalMessage
-                ) : (
-                  getMessageContent(children)
-                )}
+                {renderContent()}
               </span>
               {!ownMessage && !isAudio && (
                 <>
