@@ -1,4 +1,3 @@
-// Avatar mapping: translation key -> English filename
 export const avatarMapping: Record<string, string> = {
   'jacare': 'Alligator',
   'tamia': 'Chipmunk', 
@@ -72,7 +71,6 @@ export const avatarMapping: Record<string, string> = {
   'wombat': 'Wombat',
 };
 
-// Legacy support - keep the old randomNicks for backward compatibility
 export const randomNicks: Record<string, string> = {
   'Jacaré Anônimo': 'Alligator',
   'Tamiá Anônimo': 'Chipmunk',
@@ -147,26 +145,22 @@ export const randomNicks: Record<string, string> = {
 };
 
 export class RandomNicks {
-  // New method that returns translation key instead of hardcoded Portuguese
   static getRandomKey() {
     const keys = Object.keys(avatarMapping);
     const randomIndex = Math.floor(Math.random() * keys.length);
     return keys[randomIndex];
   }
 
-  // Get English filename from translation key
   static getEnglishFromKey(key: string) {
     return avatarMapping[key];
   }
 
-  // Legacy method for backward compatibility
   static get() {
     const nicks = Object.keys(randomNicks);
     const randomIndex = Math.floor(Math.random() * nicks.length);
     return nicks[randomIndex];
   }
 
-  // Legacy method for backward compatibility
   static getEnglish(nick: string) {
     return randomNicks[nick];
   }

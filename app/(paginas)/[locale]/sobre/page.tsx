@@ -3,15 +3,10 @@
 import { ReactNode } from 'react';
 import {
   FaCode,
-  FaRocket,
-  FaUsers,
   FaLightbulb,
-  FaBuilding,
   FaStar,
   FaGithub,
   FaLinkedin,
-  FaGlobe,
-  FaComments,
   FaAccessibleIcon,
   FaShieldAlt,
   FaHeart,
@@ -19,17 +14,16 @@ import {
   FaUniversity,
   FaGraduationCap,
 } from 'react-icons/fa';
-import { BsBoxes, BsTranslate, BsLightningCharge, BsPeople, BsShield, BsGlobe2, BsRocket } from 'react-icons/bs';
+import { BsTranslate, BsLightningCharge, BsPeople, BsShield, BsGlobe2, BsRocket } from 'react-icons/bs';
 import { HiSparkles, HiChatBubbleLeftRight, HiGlobeAlt, HiUserGroup, HiCog6Tooth, HiMicrophone } from 'react-icons/hi2';
 import Avatar from 'react-avatar';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import LanguageDetector from '../../../components/functionals/LanguageDetector';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import Timeline from '@/app/components/timeline/Timeline';
-import { DotGothic16 } from 'next/font/google';
 
 interface CardProps {
   nome: string;
@@ -51,169 +45,31 @@ interface FeatureCardProps {
   delay?: number;
 }
 
-function FeatureCard({ icon, title, description, color, delay = 0 }: FeatureCardProps) {
-  return (
-    <motion.div
-      initial={{
-        opacity: 0,
-        y: 12,
-      }}
-      whileInView={{
-        opacity: 1,
-        y: 0,
-      }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{
-        duration: 0.4,
-        delay,
-        ease: 'easeOut',
-      }}
-      whileHover={{
-        y: -2,
-        transition: {
-          duration: 0.15,
-        },
-      }}
-      className="group relative rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-all duration-200"
-    >
-      <div
-        className="inline-flex items-center justify-center w-10 h-10 rounded-md mb-3 text-white text-lg"
-        style={{ backgroundColor: color }}
-      >
-        {icon}
-      </div>
-
-      <h3 className="text-base font-semibold mb-2 text-gray-900 dark:text-white">{title}</h3>
-
-      <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">{description}</p>
-    </motion.div>
-  );
-}
-
-function CardContent({
-  nome,
-  srcImagem,
-  altImagem,
-  cargo,
-  tags,
-  icon,
-  linkGithub,
-  linkLinkedin = '#',
-  description,
-}: CardProps) {
-  return (
-    <motion.div
-      initial={{
-        opacity: 0,
-        y: 16,
-      }}
-      whileInView={{
-        opacity: 1,
-        y: 0,
-      }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{
-        duration: 0.4,
-        ease: 'easeOut',
-      }}
-      whileHover={{
-        y: -3,
-        transition: {
-          duration: 0.2,
-        },
-      }}
-      className="group relative rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-all duration-200"
-    >
-      <div className="relative flex flex-col items-center mb-4">
-        <div className="relative">
-          {srcImagem ? (
-            <Image
-              src={srcImagem}
-              width={64}
-              height={64}
-              alt={altImagem ?? 'Imagem'}
-              className="rounded-full object-cover border border-gray-200 dark:border-gray-600"
-            />
-          ) : (
-            <Avatar
-              className="border border-gray-200 dark:border-gray-600"
-              name={nome}
-              maxInitials={2}
-              size="64"
-              round
-            />
-          )}
-
-          <div className="absolute -top-1 -right-1 flex flex-col space-y-1">
-            {icon?.map((value, index) => (
-              <div
-                key={index}
-                className="bg-white dark:bg-gray-800 shadow-sm rounded-full p-1 border border-gray-200 dark:border-gray-600"
-              >
-                <Link
-                  href={index === 0 ? (linkGithub ?? '#') : linkLinkedin}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-150 text-xs"
-                >
-                  {value}
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <h3 className="text-lg font-semibold mt-2 mb-1 text-gray-900 dark:text-white text-center">{nome}</h3>
-
-        <p className="text-primary-600 dark:text-primary-400 font-medium text-sm mb-2 text-center">{cargo}</p>
-
-        {description && (
-          <p className="text-gray-600 dark:text-gray-300 text-center text-xs leading-relaxed mb-3">{description}</p>
-        )}
-      </div>
-
-      <div className="flex flex-wrap justify-center gap-1">
-        {tags.map((value, index) => (
-          <span
-            key={index}
-            className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
-          >
-            {value}
-          </span>
-        ))}
-      </div>
-    </motion.div>
-  );
-}
-
 export default function SobrePage() {
   const params = useParams();
   const locale = (params?.locale as string) || 'pt-BR';
   const t = useTranslation('', { keyPrefix: 'sobre' }).t;
-  const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 300], [0, 100]);
-  const y2 = useTransform(scrollY, [0, 300], [0, -100]);
   const timelineItems = [
     {
       date: t('evolucao.timeline.janeiro_2024.data'),
       title: t('evolucao.timeline.janeiro_2024.titulo'),
       description: t('evolucao.timeline.janeiro_2024.descricao'),
       icon: <FaLightbulb size={20} />,
-      color: '#38A3F5', // azul claro intenso
+      color: '#38A3F5',
     },
     {
       date: t('evolucao.timeline.marco_2024.data'),
       title: t('evolucao.timeline.marco_2024.titulo'),
       description: t('evolucao.timeline.marco_2024.descricao'),
       icon: <HiGlobeAlt size={20} />,
-      color: '#786FF2', // roxo azulado
+      color: '#786FF2',
     },
     {
       date: t('evolucao.timeline.maio_2024.data'),
       title: t('evolucao.timeline.maio_2024.titulo'),
       description: t('evolucao.timeline.maio_2024.descricao'),
       icon: <FaCode size={20} />,
-      color: '#6F90F2', // azul médio
+      color: '#6F90F2',
       image: '/images/pictures/scientif.png',
       imageAlt: 'Desenvolvimento inicial - primeiras linhas de código',
     },
@@ -222,7 +78,7 @@ export default function SobrePage() {
       title: t('evolucao.timeline.julho_2024.titulo'),
       description: t('evolucao.timeline.julho_2024.descricao'),
       icon: <FaAccessibleIcon size={20} />,
-      color: '#6FE3F2', // azul piscina
+      color: '#6FE3F2',
       image: '/images/pictures/Iftech.png',
       imageAlt: 'Funcionalidades de acessibilidade - design inclusivo',
     },
@@ -231,7 +87,7 @@ export default function SobrePage() {
       title: t('evolucao.timeline.setembro_2024.titulo'),
       description: t('evolucao.timeline.setembro_2024.descricao'),
       icon: <HiUserGroup size={20} />,
-      color: '#A46FF2', // lilás vibrante
+      color: '#A46FF2',
       image: '/images/pictures/bancafinal.png',
       imageAlt: 'Fase de testes - feedback dos usuários',
     },
@@ -240,14 +96,14 @@ export default function SobrePage() {
       title: t('evolucao.timeline.outubro_2024.titulo'),
       description: t('evolucao.timeline.outubro_2024.descricao'),
       icon: <HiCog6Tooth size={20} />,
-      color: '#BFCCF2', // azul bem claro
+      color: '#BFCCF2',
     },
     {
       date: t('evolucao.timeline.novembro_2024.data'),
       title: t('evolucao.timeline.novembro_2024.titulo'),
       description: t('evolucao.timeline.novembro_2024.descricao'),
       icon: <FaShieldAlt size={20} />,
-      color: '#38A3F5', // azul claro intenso
+      color: '#38A3F5',
       image: '/images/pictures/vedang.jpg',
       imageAlt: 'Otimizações e segurança - proteção avançada',
     },
@@ -256,14 +112,14 @@ export default function SobrePage() {
       title: t('evolucao.timeline.dezembro_2024.titulo'),
       description: t('evolucao.timeline.dezembro_2024.descricao'),
       icon: <FaStar size={20} />,
-      color: '#786FF2', // roxo azulado
+      color: '#786FF2',
     },
     {
       date: 'Indefinido',
       title: t('evolucao.timeline.janeiro_2025.titulo'),
       description: t('evolucao.timeline.janeiro_2025.descricao'),
       icon: <HiSparkles size={20} />,
-      color: '#6F90F2', // azul médio
+      color: '#6F90F2',
     },
   ];
   const features = [
@@ -271,37 +127,37 @@ export default function SobrePage() {
       icon: <BsTranslate />,
       title: t('recursos.traducao_tempo_real.titulo'),
       description: t('recursos.traducao_tempo_real.descricao'),
-      color: '#38A3F5', // azul claro intenso
+      color: '#38A3F5',
     },
     {
       icon: <HiMicrophone />,
       title: t('recursos.sintese_voz.titulo'),
       description: t('recursos.sintese_voz.descricao'),
-      color: '#786FF2', // roxo azulado
+      color: '#786FF2',
     },
     {
       icon: <FaAccessibleIcon />,
       title: t('recursos.acessibilidade_total.titulo'),
       description: t('recursos.acessibilidade_total.descricao'),
-      color: '#6FE3F2', // azul piscina
+      color: '#6FE3F2',
     },
     {
       icon: <BsLightningCharge />,
       title: t('recursos.velocidade_extrema.titulo'),
       description: t('recursos.velocidade_extrema.descricao'),
-      color: '#6F90F2', // azul médio
+      color: '#6F90F2',
     },
     {
       icon: <BsShield />,
       title: t('recursos.seguranca_avancada.titulo'),
       description: t('recursos.seguranca_avancada.descricao'),
-      color: '#A46FF2', // lilás vibrante
+      color: '#A46FF2',
     },
     {
       icon: <HiCog6Tooth />,
       title: t('recursos.personalizacao_total.titulo'),
       description: t('recursos.personalizacao_total.descricao'),
-      color: '#BFCCF2', // azul bem claro
+      color: '#BFCCF2',
     },
   ];
   const teamMembers = [
@@ -340,7 +196,7 @@ export default function SobrePage() {
     },
     {
       nome: t('equipe.membros.michelli.nome'),
-      srcImagem: null, // Usar Avatar gerado
+      srcImagem: null, // Use generated Avatar
       altImagem: 'Avatar da Professora Michelli',
       cargo: t('equipe.membros.michelli.cargo'),
       description: t('equipe.membros.michelli.descricao'),
@@ -403,7 +259,7 @@ export default function SobrePage() {
               {' '}
               <Link
                 href={`/${locale}/conversar`}
-                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-xl hover:from-primary-700 hover:to-secondary-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold text-lg"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold text-lg"
               >
                 <HiChatBubbleLeftRight className="w-5 h-5" />
                 {t('hero.botoes.comecar_conversar')}

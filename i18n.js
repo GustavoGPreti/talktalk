@@ -3,10 +3,8 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import resourcesToBackend from 'i18next-resources-to-backend';
 
-// Define supported languages
 const supportedLanguages = ['pt-BR', 'en-US', 'es-ES'];
 
-// Language mapping
 const languageMap = {
   'pt': 'pt-BR',
   'pt-PT': 'pt-BR',
@@ -20,10 +18,8 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .use(resourcesToBackend((language, namespace, callback) => {
-    // Normalize language code using the mapping
     let mappedLanguage = languageMap[language] || language;
     
-    // If not in supported languages, default to pt-BR
     if (!supportedLanguages.includes(mappedLanguage)) {
       mappedLanguage = 'pt-BR';
     }
@@ -70,7 +66,6 @@ i18n
       transSupportBasicHtmlNodes: true,
       transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'p'],
     },
-    // Add default namespace
     defaultNS: 'translation',
     ns: ['translation'],
   });

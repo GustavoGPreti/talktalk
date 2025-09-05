@@ -4,7 +4,6 @@ const locales = ['pt-BR', 'en-US', 'es-ES'] as const;
 const defaultLocale = 'pt-BR';
 
 function getLocale(request: NextRequest): string {
-  // Check URL for locale parameter
   const pathname = request.nextUrl.pathname;
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
@@ -14,13 +13,11 @@ function getLocale(request: NextRequest): string {
     return pathname.split('/')[1];
   }
 
-  // Check cookie for saved locale
   const cookieLocale = request.cookies.get('i18nextLng')?.value;
   if (cookieLocale && locales.includes(cookieLocale as any)) {
     return cookieLocale;
   }
 
-  // Check Accept-Language header
   const acceptLanguage = request.headers.get('accept-language');
   if (acceptLanguage) {
     const preferredLocale = acceptLanguage
@@ -29,14 +26,12 @@ function getLocale(request: NextRequest): string {
       .join('-')
       .toLowerCase();
 
-    // Try exact match first
     for (const locale of locales) {
       if (locale.toLowerCase() === preferredLocale) {
         return locale;
       }
     }
 
-    // Try partial match (e.g., 'pt' matches 'pt-BR')
     for (const locale of locales) {
       if (preferredLocale.startsWith(locale.split('-')[0].toLowerCase())) {
         return locale;
@@ -50,7 +45,6 @@ function getLocale(request: NextRequest): string {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for static files and API routes
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
@@ -60,7 +54,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check if pathname already has a locale
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   );
@@ -77,7 +70,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Skip all internal paths (_next, api, etc.)
     '/((?!api|_next|_vercel|static|.*\\..*).*)',
   ],
 };

@@ -44,4 +44,5 @@ certificates
 # Million Lint
 .million
 
+GEMINI.md
 bun.lock
