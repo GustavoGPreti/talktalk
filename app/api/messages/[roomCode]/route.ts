@@ -9,7 +9,6 @@ export async function GET(request: NextRequest, props: { params: Promise<{ roomC
   try {
     const roomCode = await params.roomCode;
     
-    // Busca mensagens da sala
     const messages = await prisma.mensagens.findMany({
       where: {
         codigoSala: roomCode
@@ -19,14 +18,12 @@ export async function GET(request: NextRequest, props: { params: Promise<{ roomC
       }
     });
 
-    // Busca usuários da sala para obter informações dos remetentes
     const roomUsers = await prisma.salas_Usuarios.findMany({
       where: {
         codigoSala: roomCode
       }
     });
 
-    // Descriptografa dados dos usuários
     const usersData = await Promise.all(
       roomUsers.map(async (user) => {
         try {
@@ -39,12 +36,10 @@ export async function GET(request: NextRequest, props: { params: Promise<{ roomC
       })
     );
 
-    // Descriptografa e formata as mensagens
     const formattedMessages = await Promise.all(messages.map(async (msg) => {
       const sender = usersData.find(u => u?.userToken === msg.usuario);
       
       try {
-        // Adiciona protocolo http/https na URL
         const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
           ? `${process.env.NEXT_PUBLIC_PROTOCOL!}://${process.env.NEXT_PUBLIC_VERCEL_URL}` 
           : 'http://localhost:3000';

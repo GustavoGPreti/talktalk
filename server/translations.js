@@ -1,4 +1,4 @@
-// Translations for server-side error messages
+
 const translations = {
   'pt-BR': {
     roomFull: 'Sala está cheia! Máximo de 4 usuários permitidos.',
@@ -24,7 +24,6 @@ const translations = {
 };
 
 function getTranslation(language, key) {
-  // Fallback to Portuguese if language not supported
   const lang = translations[language] || translations['pt-BR'];
   return lang[key] || translations['pt-BR'][key] || key;
 }

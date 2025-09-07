@@ -286,6 +286,17 @@
     }
   },
   "chat": {    "interface": {
+      "bem_vindo_sala": "Welcome to the room",
+      "alterar_cor": "Change color",
+      "para_entrar_sala_insira_apelido": "To enter the room, enter a nickname (optional):",
+      "digite_apelido": "Type a nickname...",
+      "compartilhar_sala": "Share room",
+      "link_copiado": "Link copied!",
+      "esta_digitando": "is typing...",
+      "ir_para_o_final": "Go to the end",
+      "configuracoes": "Settings",
+      "entrar_sala": "Enter Room",
+      "voce_e_o_host": "YOU ARE THE HOST OF THE ROOM!",
       "digite_mensagem": "Type a message...",
       "emoji_picker": {
         "botao_abrir": "Open emoji picker",
@@ -526,7 +537,10 @@
     },
     "compartilhar": {
       "titulo": "Share room",
-      "descricao": "Copy the following link or share the code for the person to join your chat."
+      "descricao": "Copy the following link or share the code for the person to join your chat.",
+      "copiar_link": "Copy link",
+      "link_copiado": "Link copied!",
+      "ou_acessar_link": "or"
     },
     "mensagem": {
       "original": "Original message",

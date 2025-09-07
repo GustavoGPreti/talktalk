@@ -12,7 +12,7 @@ interface TranslationContextType {
 }
 
 const defaultSettings: TranslationSettings = {
-  autoTranslate: true, // Enabled by default
+  autoTranslate: true,
 };
 
 const TranslationContext = createContext<TranslationContextType | null>(null);
@@ -29,14 +29,12 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
   const [settings, setSettings] = useState<TranslationSettings>(defaultSettings);
 
   useEffect(() => {
-    // Load saved settings from localStorage
     const savedSettings = localStorage.getItem('talktalk_translation_settings');
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings));
     }
   }, []);
 
-  // Save settings to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('talktalk_translation_settings', JSON.stringify(settings));
   }, [settings]);

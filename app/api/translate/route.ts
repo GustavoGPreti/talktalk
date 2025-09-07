@@ -14,13 +14,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing text or targetLanguage' }, { status: 400 });
     }
 
-    // Validate that targetLanguage is not empty or just whitespace
     if (typeof targetLanguage !== 'string' || targetLanguage.trim() === '') {
       console.log('[ERROR] Invalid targetLanguage:', { targetLanguage, type: typeof targetLanguage });
       return NextResponse.json({ error: 'Invalid targetLanguage - must be non-empty string' }, { status: 400 });
     }
 
-    // Map common language codes to standardized format
     const languageMapping: { [key: string]: string } = {
       'pt-BR': 'pt',
       'pt-PT': 'pt', 

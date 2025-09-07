@@ -11,29 +11,16 @@ import { useTranslation } from '@/app/contexts/TranslationContext';
 import { useFontSize } from '@/app/contexts/FontSizeContext';
 import { useTranslation as useI18nTranslation } from 'react-i18next';
 
-/**
- * Props for the Message component.
- */
 interface MessageProps {
-  /** Whether the message is an audio message. */
   isAudio: boolean;
-  /** The content of the message. */
   children: React.ReactNode;
-  /** The date of the message. */
-  date: string | Moment | Date;
-  /** The language of the message. */
+  date: Moment | string | Date;
   lingua: string;
-  /** Whether the message is from the current user. */
   ownMessage: boolean;
-  /** The original message content. */
   originalMessage: string;
-  /** The sender's nickname. */
   senderApelido: string;
-  /** The sender's avatar URL. */
   senderAvatar: string;
-  /** The sender's color. */
   senderColor: string;
-  /** Whether the message should be displayed in a compact format. */
   compact?: boolean;
 }
 
@@ -43,25 +30,22 @@ interface MessageProps {
  * @param {string | React.ReactNode} props.text - The text to be spoken.
  * @param {boolean} [props.isOwnMessage=false] - Whether the message is from the current user.
  */
+
 function MicComponent({ text, isOwnMessage = false }: { text: string | React.ReactNode; isOwnMessage?: boolean }) {
   const { settings } = useSpeech();
   const { t } = useI18nTranslation('');
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [isNewMessage, setIsNewMessage] = React.useState(true);
   const speechRef = React.useRef<SpeechSynthesisUtterance | null>(null);
 
-  // Reference to store audio component metadata
   const micDataRef = React.useRef({
     isNewMessage: true,
     hasBeenRead: false,
     textKey: typeof text === 'string' ? text.slice(0, 20) : 'message',
   });
 
-  // Generate a secure ID for the component
   const micId = `mic-${Math.random().toString(36).substring(2, 7)}`;
 
-  // Reference to the DOM element
   const micElementRef = React.useRef<HTMLDivElement>(null);
 
   const getSpeechContent = React.useCallback((input: string | React.ReactNode): string => {
@@ -90,14 +74,12 @@ function MicComponent({ text, isOwnMessage = false }: { text: string | React.Rea
       }
     }
   }, [isPlaying, progress]);
-  // Configure speech utterance
   React.useEffect(() => {
     if (!speechText) return;
 
     const utterance = new SpeechSynthesisUtterance(speechText);
     speechRef.current = utterance;
 
-    // Apply speech settings
     utterance.volume = settings.volume / 100;
     utterance.rate = settings.rate;
     utterance.pitch = settings.pitch;
@@ -127,25 +109,21 @@ function MicComponent({ text, isOwnMessage = false }: { text: string | React.Rea
       const progressValue = speechText ? (charIndex / speechText.length) * 100 : 0;
       setProgress(progressValue);
     };
-    // Auto-read only if autoRead is enabled, it is a new message AND it is NOT the user's own message
     if (settings.autoRead && micDataRef.current.isNewMessage && !micDataRef.current.hasBeenRead && !isOwnMessage) {
       window.speechSynthesis.speak(utterance);
-      // Mark as already read to avoid re-reading
       micDataRef.current.hasBeenRead = true;
       micDataRef.current.isNewMessage = false;
     }
     return () => {
       window.speechSynthesis.cancel();
     };
-  }, [speechText, settings, isOwnMessage]); // Adding isOwnMessage to the dependencies
+  }, [speechText, settings, isOwnMessage]);
 
-  // Synchronize data with the DOM element for external access
   React.useEffect(() => {
     if (micElementRef.current) {
       (micElementRef.current as any).__micData = micDataRef.current;
     }
   }, []);
-  // If there's no text to speak, return null
   if (!speechText) return null;
   return (
     <div
@@ -199,10 +177,8 @@ function AudioMessage({ src }: { src: string }) {
 
   React.useEffect(() => {
     if (audioRef.current) {
-      // Apply speech settings to audio element
       audioRef.current.volume = settings.volume / 100;
       audioRef.current.playbackRate = settings.rate;
-      // Note: pitch cannot be adjusted for normal audio elements
     }
   }, [settings.volume, settings.rate]);
 
@@ -214,10 +190,6 @@ function AudioMessage({ src }: { src: string }) {
   );
 }
 
-/**
- * A component that displays a chat message.
- * It can display text or audio messages, and it supports translation and text-to-speech.
- */
 export default function Message({
   isAudio,
   children,
@@ -231,22 +203,15 @@ export default function Message({
   compact = false,
 }: MessageProps) {
   const { fontSize } = useFontSize();
-  const { settings } = useSpeech();
   const { settings: translationSettings } = useTranslation();
   const { t } = useI18nTranslation('');
 
-  // Handle undefined or empty language properly
-  const hasValidLanguage = lingua && typeof lingua === 'string' && lingua.trim() !== '' && supportedLanguages[lingua];
-  const languageLabel = hasValidLanguage ? supportedLanguages[lingua]?.label || lingua : '';
-
-  // Initialize state based on translationSettings.autoTranslate
   const [showOriginal, setShowOriginal] = useState(!translationSettings.autoTranslate);
-  // Update showOriginal when translationSettings.autoTranslate changes
+
   useEffect(() => {
     if (!ownMessage && !isAudio) {
       setShowOriginal(!translationSettings.autoTranslate);
 
-      // Prevents automatic re-reading of messages when changing the automatic translation setting.
       setTimeout(() => {
         document.querySelectorAll('[id^="mic-"]').forEach((micComponent) => {
           if ((micComponent as any).__micData) {
@@ -266,7 +231,6 @@ export default function Message({
       return (
         <div className="flex flex-col items-start w-full">
           <AudioMessage src={originalMessage} />
-          {/* Só mostra as opções para quem recebe o áudio */}
           {!ownMessage && (
             <div className="flex gap-3 mt-2 w-full items-center">
               <button
@@ -338,18 +302,13 @@ export default function Message({
                       <p>
                         {showOriginal ? (
                           t('chat.mensagem.original')
-                        ) : hasValidLanguage ? (
-                          `${t('chat.mensagem.traduzido_de')} ${languageLabel} (${lingua})`
                         ) : (
-                          <span className="flex items-center gap-1">
-                            <AlertCircle size={12} /> {t('chat.mensagem.idioma_nao_identificado')}
-                          </span>
+                          `${t('chat.mensagem.traduzido_de')} (${lingua})`
                         )}
                       </p>
                       <button
                         onClick={() => {
                           setShowOriginal(!showOriginal);
-                          // Prevents automatic re-reading when switching the translation view.
                           document.querySelectorAll('[id^="mic-"]').forEach((micComponent) => {
                             if ((micComponent as any).__micData) {
                               (micComponent as any).__micData.isNewMessage = false;
@@ -393,17 +352,12 @@ export default function Message({
                         {' '}
                         {showOriginal ? (
                           t('chat.mensagem.original')
-                        ) : hasValidLanguage ? (
-                          `${t('chat.mensagem.traduzido_de')} ${languageLabel} (${lingua})`
                         ) : (
-                          <span className="flex items-center gap-1">
-                            <AlertCircle size={12} /> {t('chat.mensagem.idioma_nao_identificado')}
-                          </span>
+                          `${t('chat.mensagem.traduzido_de')} (${lingua})`
                         )}
                         <button
                           onClick={() => {
                             setShowOriginal(!showOriginal);
-                            // Prevents automatic re-reading when switching the translation view.
                             document.querySelectorAll('[id^="mic-"]').forEach((micComponent) => {
                               if ((micComponent as any).__micData) {
                                 (micComponent as any).__micData.isNewMessage = false;

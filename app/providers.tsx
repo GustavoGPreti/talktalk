@@ -34,7 +34,6 @@ export default function Providers({ children }: { children: ReactNode }) {
     initI18n();
   }, []);
 
-  // Don't render until i18n is ready
   if (!isI18nInitialized) {
     return (
       <div className="flex items-center justify-center min-h-screen">

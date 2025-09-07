@@ -34,7 +34,6 @@ export function FontSizeProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Loads the saved font size from localStorage on initial render.
     const savedSize = localStorage.getItem('talktalk_font_size');
     if (savedSize) {
       const size = Number(savedSize);

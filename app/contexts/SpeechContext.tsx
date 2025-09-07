@@ -24,8 +24,8 @@ const defaultSettings: SpeechSettings = {
   pitch: 1,
   rate: 1,
   voice: '',
-  autoRead: false, // Leitura automática desligada por padrão
-  enabled: true, // Componente de fala ligado por padrão para permitir uso manual
+  autoRead: false,
+  enabled: true,
 };
 
 const SpeechContext = createContext<SpeechContextType | null>(null);
@@ -43,12 +43,10 @@ export function SpeechProvider({ children }: { children: React.ReactNode }) {
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Define updateSettings
   const updateSettings = (newSettings: Partial<SpeechSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
   };
 
-  // Load initial settings from localStorage (only once)
   useEffect(() => {
     const savedSettings = localStorage.getItem('talktalk_speech_settings');
     if (savedSettings) {
@@ -62,13 +60,11 @@ export function SpeechProvider({ children }: { children: React.ReactNode }) {
     setIsInitialized(true);
   }, []);
 
-  // Initialize speech synthesis and load voices
   useEffect(() => {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
       setAvailableVoices(voices);
       
-      // Set default voice if none selected and settings are initialized
       if (isInitialized && !settings.voice && voices.length > 0) {
         const defaultVoice = voices.find(voice => voice.default) || voices[0];
         setSettings(prev => ({ ...prev, voice: defaultVoice.name }));
@@ -80,7 +76,6 @@ export function SpeechProvider({ children }: { children: React.ReactNode }) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
     
-    // Cleanup
     return () => {
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.onvoiceschanged = null;
@@ -88,12 +83,9 @@ export function SpeechProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isInitialized, settings.voice]);
 
-  // Save settings to localStorage when they change (but not on initial load)
   useEffect(() => {
     if (!isInitialized) return;
     
-    // Quando as configurações mudam, marcar todas as mensagens como não sendo mais novas
-    // para evitar releituras indesejadas
     if (typeof window !== 'undefined') {
       setTimeout(() => {
         document.querySelectorAll('[id^="mic-"]').forEach((micComponent) => {
@@ -104,21 +96,18 @@ export function SpeechProvider({ children }: { children: React.ReactNode }) {
       }, 0);
     }
     
-    // Salvar as configurações no localStorage
     localStorage.setItem('talktalk_speech_settings', JSON.stringify(settings));
   }, [settings, isInitialized]);
   const speak = (text: string) => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
 
-    // Cancel any ongoing speech
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // Apply settings
     utterance.volume = settings.volume / 100;
     utterance.pitch = settings.pitch;
-    utterance.rate = settings.rate;    // Set voice
+    utterance.rate = settings.rate;
     const voice = availableVoices.find(v => v.name === settings.voice);
     if (voice) {
       utterance.voice = voice;

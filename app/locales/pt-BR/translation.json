@@ -269,7 +269,19 @@
       "selecionado": "SELECIONADO"
     }
   },
-  "chat": {    "interface": {
+  "chat": {
+    "interface": {
+      "bem_vindo_sala": "Bem-vindo à sala",
+      "alterar_cor": "Alterar cor",
+      "compartilhar_sala": "Compartilhar sala",
+      "ou_acessar_link": "ou acessar o link",
+      "link_copiado": "Link copiado!",
+      "esta_digitando": "está digitando...",
+      "ir_para_o_final": "Ir para o final",
+      "configuracoes": "Configurações",
+      "para_entrar_sala_insira_apelido": "Para entrar na sala, insira um apelido (opcional):",
+      "entrar_sala": "Entrar na sala",
+      "voce_e_o_host": "VOCÊ É O ANFITRIÃO DA SALA!",
       "digite_mensagem": "Digite uma mensagem...",
       "emoji_picker": {
         "botao_abrir": "Abrir seletor de emojis",
@@ -510,7 +522,8 @@
     },
     "compartilhar": {
       "titulo": "Compartilhar sala",
-      "descricao": "Copie o link a seguir ou compartilhe o código para a pessoa entrar em seu bate-papo."
+      "descricao": "Copie o link a seguir ou compartilhe o código para a pessoa entrar em seu bate-papo.",
+      "ou_acessar_link": "ou"
     },
     "mensagem": {
       "original": "Mensagem original",

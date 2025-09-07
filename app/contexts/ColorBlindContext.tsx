@@ -29,13 +29,11 @@ export const ColorBlindProvider = ({ children }: ColorBlindProviderProps) => {
   const setColorBlindType = (type: ColorBlindType) => {
     setColorBlindTypeState(type);
     
-    // Save to localStorage
     const savedSettings = localStorage.getItem('talktalk_user_settings');
     const settings = savedSettings ? JSON.parse(savedSettings) : {};
     settings.colorBlindType = type;
     localStorage.setItem('talktalk_user_settings', JSON.stringify(settings));
 
-    // Apply filter globally
     const root = document.documentElement;
     if (type === 'none') {
       root.style.filter = 'none';
@@ -44,14 +42,12 @@ export const ColorBlindProvider = ({ children }: ColorBlindProviderProps) => {
     }
   };
 
-  // Load saved settings on initial mount
   useEffect(() => {
     const savedSettings = localStorage.getItem('talktalk_user_settings');
     if (savedSettings) {
       const settings = JSON.parse(savedSettings);
       if (settings.colorBlindType) {
         setColorBlindTypeState(settings.colorBlindType);
-        // Apply filter globally
         const root = document.documentElement;
         if (settings.colorBlindType === 'none') {
           root.style.filter = 'none';

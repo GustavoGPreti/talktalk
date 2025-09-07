@@ -53,7 +53,6 @@ const UserSettingsPage = () => {
     'ru-RU': 'Russo (Rússia)',
     'ar-SA': 'Árabe (Arábia Saudita)',
   };
-  // User settings states
   const [preferredLanguage, setPreferredLanguage] = useState('pt-BR');
   const [userName, setUserName] = useState('');
   const [userApelido, setUserApelido] = useState('');
@@ -64,7 +63,6 @@ const UserSettingsPage = () => {
   const [autoTranslate, setAutoTranslate] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
 
-  // Speech synthesis hook
   const { settings, updateSettings, speak } = useSpeech();
   const { settings: translationSettings, updateSettings: updateTranslationSettings } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
@@ -75,14 +73,13 @@ const UserSettingsPage = () => {
   const [avatarDetails, setAvatarDetails] = useState<{ avatarURL: string; avatarName: string }>({
     avatarURL: '',
     avatarName: '',
-  }); // Use the ColorBlind context directly
+  });
   const { colorBlindType, setColorBlindType } = useColorBlind();
 
   const theme = useTheme();
 
   const { fontSize, setFontSize } = useFontSize();
 
-  // Add new function to save settings
   const saveUserSettings = useCallback((settings: any) => {
     localStorage.setItem('talktalk_user_settings', JSON.stringify(settings));
   }, []);
@@ -93,13 +90,11 @@ const UserSettingsPage = () => {
   });
   const isFirstLoad = useRef(true);
 
-  // Use the context for colorBlindType directly  // Add useEffect to load saved settings on component mount
   useEffect(() => {
     const savedSettings = localStorage.getItem('talktalk_user_settings');
     if (savedSettings) {
       const settings = JSON.parse(savedSettings);
       if (settings.linguaSelecionada) {
-        // Only update if different
         if (
           settings.linguaSelecionada.value !== linguaSelecionada.value ||
           settings.linguaSelecionada.label !== linguaSelecionada.label ||
@@ -114,14 +109,11 @@ const UserSettingsPage = () => {
       if (settings.avatarColor) {
         setAvatarColor(settings.avatarColor);
       }
-      // Note: We don't need to handle colorBlindType here anymore,
-      // the ColorBlindContext takes care of loading and applying it
     }
     isFirstLoad.current = false;
-  }, [setLinguaSelecionada, linguaSelecionada.value, linguaSelecionada.label, linguaSelecionada.flag]); // State for managing available voices
+  }, [setLinguaSelecionada, linguaSelecionada.value, linguaSelecionada.label, linguaSelecionada.flag]);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
 
-  // Voice settings and initialization
   useEffect(() => {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
@@ -142,16 +134,13 @@ const UserSettingsPage = () => {
       window.speechSynthesis.onvoiceschanged = null;
     };
   }, [preferredLanguage, settings.voice, updateSettings]);
-  // Test voice function now uses speech context
   const testVoice = () => {
     speak('Olá! Esta é uma mensagem de teste para as configurações de voz.');
   };
   useEffect(() => {
-    // Updates local state with context value on page load
     setAutoTranslate(translationSettings.autoTranslate);
   }, [translationSettings.autoTranslate]);
 
-  // Function to update auto-translate setting
   const handleAutoTranslateChange = useCallback(
     (value: boolean) => {
       setAutoTranslate(value);
@@ -163,7 +152,6 @@ const UserSettingsPage = () => {
   const handleLanguageChange = (language) => {
     const index = languagesData.findIndex((lang) => lang.value === language);
     if (index === -1) return;
-    // Only update if different
     if (linguaSelecionada.value === languagesData[index].value) return;
     setLinguaSelecionada({
       label: languagesData[index].label,
@@ -188,7 +176,7 @@ const UserSettingsPage = () => {
 
     if (!englishName) {
       console.error(`Apelido "${randomAnimal}" não encontrado.`);
-      return ''; // Returns an empty string as default value
+      return '';
     }
 
     const imageUrl = `/images/avatars/${englishName.toLowerCase()}.png`;
@@ -228,7 +216,6 @@ const UserSettingsPage = () => {
       });
     };
 
-    // Use panda as default avatar if none is set
     const avatarSrc =
       avatarDetails.avatarURL && avatarDetails.avatarURL.trim() ? avatarDetails.avatarURL : '/images/avatars/panda.png';
 
@@ -252,10 +239,8 @@ const UserSettingsPage = () => {
   }, [avatarDetails.avatarURL, avatarColor, getRandomAvatar, linguaSelecionada, saveUserSettings]);
   const handleColorBlindChange = useCallback(
     (type: ColorBlindType) => {
-      // Use the context's setColorBlindType function
       setColorBlindType(type);
 
-      // Save other settings
       const settings = {
         linguaSelecionada,
         avatarDetails,
@@ -651,7 +636,6 @@ const UserSettingsPage = () => {
                         <option value="">{t('chat.configuracoes.audio.voz.selecione')}</option>
                         {availableVoices
                           .sort((a, b) => {
-                            // Preference for Portuguese voices
                             const aPt = a.lang && a.lang.startsWith('pt');
                             const bPt = b.lang && b.lang.startsWith('pt');
                             if (aPt && !bPt) return -1;

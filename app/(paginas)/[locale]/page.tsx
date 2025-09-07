@@ -157,23 +157,19 @@ export default function Home({}) {
         </Marquee>{' '}
         <section className="flex flex-1 items-center justify-center px-6 text-center py-4">
           <div className="relative flex flex-col items-center justify-center w-full max-w-4xl">
-            {/* Simplified background glow effects */}
             <div className="absolute inset-0 -z-10">
-              {/* Primary glow */}
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
-              {/* Secondary glows */}
               <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-gradient-to-r from-purple-400/15 to-pink-400/15 rounded-full blur-2xl"></div>
               <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-gradient-to-r from-green-400/15 to-blue-400/15 rounded-full blur-2xl"></div>
             </div>
 
-            {/* Main content */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: 'easeOut' }}
               className="relative z-10"
             >
-              {' '}              {/* Logo/Title with better sizing */}
+              {' '}       
               <motion.h1
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -194,7 +190,7 @@ export default function Home({}) {
                   <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/30 via-cyan-400/20 to-blue-700/30 rounded-2xl blur-2xl -z-10"></div>
                 </span>
               </motion.h1>
-              {/* Compact subtitle */}              <motion.p
+              <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1, delay: 0.6 }}
@@ -204,7 +200,6 @@ export default function Home({}) {
                   {t('descricao')}
                 </span>
               </motion.p>{' '}
-              {/* Compact CTA Buttons */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -251,7 +246,6 @@ export default function Home({}) {
                   </span>
                 </Link>
               </motion.div>{' '}
-              {/* Compact feature highlights */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

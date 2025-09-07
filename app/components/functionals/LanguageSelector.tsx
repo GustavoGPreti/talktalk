@@ -32,7 +32,6 @@ export function LanguageSelector({ selectedLanguage, onLanguageChange }: Languag
     setSelectedIndex(undefined);
   }, [isOpen]);
 
-  // Reset selection if filtered languages change
   useEffect(() => {
     if (selectedIndex !== undefined && selectedIndex >= filteredLanguages.length) {
       setSelectedIndex(undefined);

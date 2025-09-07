@@ -4,16 +4,10 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-/**
- * A page component that requires the user to confirm acceptance of terms and privacy policy.
- * It checks localStorage for existing consent and allows the user to confirm, which
- * sets the consent in localStorage and redirects to the homepage.
- */
 export default function ConfirmarPage() {
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
-    // Checks if the terms have been previously accepted.
     const termsAccepted = localStorage.getItem('talktalk_terms_accepted');
     const privacyAccepted = localStorage.getItem('talktalk_privacy_accepted');
     
@@ -27,7 +21,6 @@ export default function ConfirmarPage() {
     localStorage.setItem('talktalk_privacy_accepted', 'true');
     setConfirmed(true);
     
-    // Redirects to the homepage after a 2-second delay.
     setTimeout(() => {
       window.location.href = '/';
     }, 2000);

@@ -14,7 +14,6 @@ const { getTranslation } = require('./translations');
 
 let prisma;
 try {
-  // Try to import from parent directory first (where prisma generate was run)
   const { PrismaClient } = require('../node_modules/@prisma/client');
   prisma = new PrismaClient({
     log: ['error'],

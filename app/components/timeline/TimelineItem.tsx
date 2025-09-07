@@ -29,8 +29,8 @@ const TimelineItem: FC<TimelineItemProps> = ({
 }) => {  const itemRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(itemRef, { 
     once: true, 
-    amount: 0.1, // Reduced from 0.3 for better mobile performance
-    margin: "0px 0px -100px 0px" // Trigger earlier
+    amount: 0.1,
+    margin: "0px 0px -100px 0px"
   });return (
     <div ref={itemRef} className={`timeline-item relative py-6 sm:py-8 md:py-12 ${isLast ? 'pb-0' : ''}`}>
       <div className="absolute left-1/2 top-0 -translate-x-1/2 z-30 flex justify-center">

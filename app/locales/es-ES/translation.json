@@ -279,7 +279,17 @@
       "selecionado": "SELECCIONADO"
     }
   },
-  "chat": {    "interface": {
+  "chat": {
+    "interface": {
+      "bem_vindo_sala": "Bienvenido a la sala",
+      "alterar_cor": "Cambiar color",
+      "compartilhar_sala": "Compartir sala",
+      "esta_digitando": "está escribiendo...",
+      "ir_para_o_final": "Ir para el final",
+      "configuracoes": "Configuraciones",
+      "para_entrar_sala_insira_apelido": "Para entrar en la sala, ingresa un apodo (opcional):",
+      "digite_apelido": "Escribe un apodo...",
+      "entrar_sala": "Entrar en la sala",
       "digite_mensagem": "Escribe un mensaje...",
       "emoji_picker": {
         "botao_abrir": "Abrir selector de emojis",
@@ -520,7 +530,8 @@
     },
     "compartilhar": {
       "titulo": "Compartir sala",
-      "descricao": "Copia el enlace a continuación o comparte el código para que la persona entre en tu chat."
+      "descricao": "Copia el enlace a continuación o comparte el código para que la persona entre en tu chat.",
+      "ou_acessar_link": "o"
     },
     "mensagem": {
       "original": "Mensaje original",

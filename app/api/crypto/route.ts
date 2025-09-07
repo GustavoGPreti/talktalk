@@ -7,9 +7,8 @@ interface CryptoRequest {
   data: any;
   action: 'encrypt' | 'decrypt' | 'encryptUserData' | 'decryptUserData' | 'hash' | 'verifyHash' | 'verifyData';
   apiKey: string;
-  hash?: string; // para verificação de hash
+  hash?: string;
   dataCriptografada?: {
-    // para verificação de dados
     chave: string;
     iv: string;
     dadoCriptografado: string;
@@ -165,7 +164,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Função auxiliar para descriptografia (usada internamente)
 async function descriptografarUserData(dadoCriptografado: string): Promise<any> {
   const jwtSecret = process.env.JWT_SECRET;
   const jwtSecretIv = process.env.JWT_SECRET_IV;

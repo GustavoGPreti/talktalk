@@ -208,9 +208,6 @@ function LanguageSwitcher() {
 
         newPathname = newPathname || '/';
         console.log(newPathname);
-        // await router.push(newPathname);
-        // router.refresh();
-        // console.log(newLocale);
         i18n.changeLanguage(newLocale);
 
         const newUrl = `/${newLocale}${newPathname}`;

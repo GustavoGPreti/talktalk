@@ -2,10 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody, Button, Tooltip } from "@heroui/react";
 import { useTranslation } from 'react-i18next';
 
-/**
- * Defines the color palette for the application.
- * Each color has a name used for i18n and a hex value.
- */
+
 export const colors = [
   // TalkTalk Palette
   { name: 'intense_light_blue', hex: '#38A3F5' },
@@ -32,29 +29,16 @@ export const colors = [
   { name: 'mint_green', hex: '#B9EBC1' },
 ];
 
-/**
- * Props for the ColorSelector component.
- */
 interface ColorSelectorI {
   /**
    * Callback function triggered when a color is selected.
    * @param color - The selected color's hex value.
    */
   onSelectColor: (color: string) => void;
-  /**
-   * Callback function triggered when the modal is closed.
-   */
   onModalClose: () => void;
-  /**
-   * Boolean to control the visibility of the modal.
-   */
   isOpen: boolean;
 }
 
-/**
- * A modal component that allows users to select a color from a predefined palette.
- * It is accessible, supporting keyboard navigation and ARIA attributes.
- */
 const ColorSelector: React.FC<ColorSelectorI> = ({ onSelectColor, onModalClose, isOpen }) => {
   const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(isOpen);

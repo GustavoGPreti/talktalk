@@ -196,7 +196,7 @@ export default function SobrePage() {
     },
     {
       nome: t('equipe.membros.michelli.nome'),
-      srcImagem: null, // Use generated Avatar
+      srcImagem: null,
       altImagem: 'Avatar da Professora Michelli',
       cargo: t('equipe.membros.michelli.cargo'),
       description: t('equipe.membros.michelli.descricao'),

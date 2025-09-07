@@ -11,18 +11,14 @@ export default function LanguageDetector() {
   const locale = params?.locale as string;
   const isInitialized = useRef(false);
 
-  // Sync locale from URL with i18n
   useEffect(() => {
     if (locale && locale !== i18n.language) {
       console.log('[LanguageDetector] Changing language from URL:', { from: i18n.language, to: locale });
-      
-      // Change language and wait for it to complete
+
       i18n.changeLanguage(locale).then(() => {
         console.log('[LanguageDetector] Language changed successfully to:', locale);
-        // Save to localStorage for persistence
         localStorage.setItem('i18nextLng', locale);
         
-        // Set cookie for server-side detection
         document.cookie = `i18nextLng=${locale}; path=/; max-age=31536000; SameSite=Lax`;
         
         isInitialized.current = true;
@@ -30,12 +26,10 @@ export default function LanguageDetector() {
         console.error('[LanguageDetector] Error changing language:', error);
       });
     } else if (locale && locale === i18n.language && !isInitialized.current) {
-      // Already correct language, just mark as initialized
       isInitialized.current = true;
     }
   }, [locale, i18n]);
 
-  // Update URL when language changes programmatically (from Navbar or other components)
   useEffect(() => {
     const handleLanguageChange = (lng: string) => {
       if (lng !== locale && isInitialized.current) {

@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import resourcesToBackend from 'i18next-resources-to-backend';
 
-const supportedLanguages = ['pt-BR', 'en-US', 'es-ES'];
+const supportedLanguages = ["pt", 'pt-BR', 'en-US', 'es-ES'];
 
 const languageMap = {
   'pt': 'pt-BR',
