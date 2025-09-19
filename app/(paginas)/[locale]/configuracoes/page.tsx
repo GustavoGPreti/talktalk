@@ -277,7 +277,53 @@ const UserSettingsPage = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto w-full">
-          <nav className="lg:w-72 bg-white/80 dark:bg-[#18181B]/80 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 p-6 h-fit">
+          {/* Mobile pill nav */}
+          <div className="lg:hidden -mx-2 px-2 -mt-1">
+            <div className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+              <button
+                onClick={() => setActiveTab('profile')}
+                className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                  activeTab === 'profile'
+                    ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 border-primary-200/50 dark:border-primary-700/50'
+                    : 'bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-200 border-white/30 dark:border-gray-700/30'
+                }`}
+              >
+                {t('chat.configuracoes.abas.perfil')}
+              </button>
+              <button
+                onClick={() => setActiveTab('language')}
+                className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                  activeTab === 'language'
+                    ? 'bg-accent-500/10 text-accent-600 dark:text-accent-400 border-accent-200/50 dark:border-accent-700/50'
+                    : 'bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-200 border-white/30 dark:border-gray-700/30'
+                }`}
+              >
+                {t('chat.configuracoes.abas.idioma')}
+              </button>
+              <button
+                onClick={() => setActiveTab('audio')}
+                className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                  activeTab === 'audio'
+                    ? 'bg-secondary-500/10 text-secondary-600 dark:text-secondary-400 border-secondary-200/50 dark:border-secondary-700/50'
+                    : 'bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-200 border-white/30 dark:border-gray-700/30'
+                }`}
+              >
+                {t('chat.configuracoes.abas.audio')}
+              </button>
+              <button
+                onClick={() => setActiveTab('appearance')}
+                className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                  activeTab === 'appearance'
+                    ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-200/50 dark:border-orange-700/50'
+                    : 'bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-200 border-white/30 dark:border-gray-700/30'
+                }`}
+              >
+                {t('chat.configuracoes.abas.aparencia')}
+              </button>
+            </div>
+          </div>
+
+          <nav className="hidden lg:block lg:w-72 bg-white/80 dark:bg-[#18181B]/80 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 p-6 h-fit">
             <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
               {t('chat.configuracoes.categorias')}
             </h2>

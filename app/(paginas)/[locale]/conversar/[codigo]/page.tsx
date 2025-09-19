@@ -1165,14 +1165,14 @@ export default function RoomPage() {
                       {t('chat.compartilhar.ou_acessar_link')}
                     </motion.span>
                     <motion.div
-                      className="flex flex-col md:flex-row items-center md:items-start justify-center gap-4 md:gap-8"
+                      className="w-full max-w-full overflow-hidden flex flex-col md:flex-row items-center md:items-start justify-center gap-4 md:gap-8"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
                     >
-                      <div className="flex gap-2 items-center justify-center">
-                        <span className="rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50 p-3 font-semibold text-blue-600 dark:text-blue-400">
-                          {shareLink} 
+                      <div className="w-full flex gap-2 items-center justify-center min-w-0">
+                        <span className="flex-1 min-w-0 block rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50 px-3 py-2 font-semibold text-blue-600 dark:text-blue-400 overflow-x-auto whitespace-nowrap">
+                          {shareLink}
                         </span>
                         <CopyButton
                           copy={shareLink}
@@ -1180,15 +1180,15 @@ export default function RoomPage() {
                           sucessText='Copied!'
                         />
                       </div>
-                      <div className="flex flex-col items-center md:items-start gap-2">
-                        <div className="p-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 border border-gray-200/60 dark:border-gray-700/60 shadow-lg">
+                      <div className="w-full flex flex-col items-center md:items-start gap-2">
+                        <div className="p-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 border border-gray-200/60 dark:border-gray-700/60 shadow-lg w-full flex justify-center">
                           <img
                             src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareLink)}`}
                             alt="QR Code"
-                            className="h-[220px] w-[220px]"
+                            className="w-full max-w-[220px] aspect-square h-auto"
                           />
                         </div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[240px] text-center md:text-left">
+                        <p className="px-2 text-xs text-gray-600 dark:text-gray-400 max-w-full md:max-w-[240px] text-center md:text-left">
                           Escaneie este QR Code com a câmera do seu celular para acessar o link rapidamente.
                         </p>
                       </div>
@@ -1413,7 +1413,7 @@ export default function RoomPage() {
           className={`
           lg:relative lg:w-[400px] lg:flex lg:flex-col lg:h-full
           ${isSettingsOpen
-              ? 'fixed inset-2 sm:inset-4 md:inset-6 lg:inset-auto z-50 lg:z-0 flex flex-col'
+              ? 'fixed top-16 left-2 right-2 bottom-2 sm:top-20 sm:left-4 sm:right-4 sm:bottom-4 md:top-24 md:left-6 md:right-6 md:bottom-6 lg:inset-auto z-[60] lg:z-0 flex flex-col'
               : 'hidden lg:flex'
           }
           bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 
@@ -1423,7 +1423,7 @@ export default function RoomPage() {
         `}
         >
           <div className="h-full flex flex-col">
-            <div className="flex-none">
+            <div className="flex-none sticky top-0 z-10">
               {' '}
               <motion.h1
                 className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border-b border-white/20 dark:border-gray-700/30 p-3 md:p-4 font-bold flex items-center justify-between"
@@ -1435,7 +1435,7 @@ export default function RoomPage() {
                   {t('chat.interface.configuracoes')}
                 </span>
                 <motion.button
-                  className="lg:hidden p-1.5 md:p-2 hover:bg-white/20 dark:hover:bg-gray-700/20 rounded-full transition-colors duration-300"
+                  className="p-1.5 md:p-2 hover:bg-white/20 dark:hover:bg-gray-700/20 rounded-full transition-colors duration-300"
                   onClick={() => setIsSettingsOpen(false)}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
