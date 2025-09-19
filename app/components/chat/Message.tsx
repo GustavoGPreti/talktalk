@@ -170,23 +170,131 @@ function MicComponent({ text, isOwnMessage = false }: { text: string | React.Rea
  * @param {object} props - The component props.
  * @param {string} props.src - The source URL of the audio file.
  */
-function AudioMessage({ src }: { src: string }) {
+function AudioMessage({ src, ownMessage = false }: { src: string; ownMessage?: boolean }) {
   const { settings } = useSpeech();
   const { t } = useI18nTranslation('');
   const audioRef = React.useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [currentTime, setCurrentTime] = React.useState(0);
+  const [duration, setDuration] = React.useState(0);
 
-  React.useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = settings.volume / 100;
-      audioRef.current.playbackRate = settings.rate;
-    }
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.volume = settings.volume / 100;
+    audio.playbackRate = settings.rate;
   }, [settings.volume, settings.rate]);
 
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const onLoadedMetadata = () => setDuration(audio.duration || 0);
+    const onTimeUpdate = () => setCurrentTime(audio.currentTime || 0);
+    const onEnded = () => setIsPlaying(false);
+
+    audio.addEventListener('loadedmetadata', onLoadedMetadata);
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('ended', onEnded);
+    return () => {
+      audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+      audio.removeEventListener('timeupdate', onTimeUpdate);
+      audio.removeEventListener('ended', onEnded);
+    };
+  }, []);
+
+  const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+    } else {
+      audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+    }
+  };
+
+  const seek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+    const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+    const pct = x / rect.width;
+    audio.currentTime = pct * (duration || 0);
+  };
+
+  const formatTime = (sec: number) => {
+    if (!isFinite(sec)) return '0:00';
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  const progressPct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
+
   return (
-    <audio ref={audioRef} controls controlsList="nodownload" className="max-w-[300px] rounded-lg">
-      <source src={src} type="audio/webm" />
-      {t('chat.interface.audio_nao_suportado')}
-    </audio>
+    <div
+      className={`w-full max-w-[360px] select-none ${ownMessage ? 'text-white' : 'text-gray-900 dark:text-gray-100'}`}
+      aria-label={t('chat.interface.mensagem_audio')}
+    >
+      {/* Hidden native audio for actual playback */}
+      <audio ref={audioRef} className="hidden">
+        <source src={src} type="audio/webm" />
+      </audio>
+
+      <div
+        className={`flex items-center gap-3 overflow-hidden ${
+          ownMessage
+            ? 'bg-transparent border-0 shadow-none px-0 py-0'
+            : 'rounded-xl border px-3 py-2 shadow-sm bg-white/70 dark:bg-zinc-900/60 border-gray-200/50 dark:border-zinc-700/50'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={togglePlay}
+          className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+            ownMessage
+              ? 'bg-white/20 hover:bg-white/30 text-white'
+              : 'bg-primary-100 hover:bg-primary-200 text-primary-700 dark:bg-primary-900/40 dark:hover:bg-primary-900/60 dark:text-primary-200'
+          }`}
+          aria-label={isPlaying ? t('chat.mensagem.pausar') : t('chat.mensagem.reproduzir')}
+        >
+          {isPlaying ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
+        </button>
+
+        <div className="flex-1 min-w-0">
+          <div
+            className={`relative h-2 w-40 cursor-pointer rounded-full ${
+              ownMessage ? 'bg-white/20' : 'bg-gray-200 dark:bg-zinc-700'
+            }`}
+            onClick={seek}
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={duration || 0}
+            aria-valuenow={currentTime || 0}
+          >
+            <div
+              className={`h-2 rounded-full transition-[width] duration-100 ease-linear ${
+                ownMessage
+                  ? 'bg-white/70'
+                  : 'bg-gradient-to-r from-primary-400 to-secondary-500'
+              }`}
+              style={{ width: `${progressPct}%` }}
+            />
+            <div
+              className={`absolute -top-1 h-4 w-4 rounded-full translate-x-[-50%] ${
+                ownMessage ? 'bg-white' : 'bg-primary-500'
+              }`}
+              style={{ left: `${progressPct}%` }}
+            />
+          </div>
+          <div className="mt-1 flex items-center justify-between text-[10px] opacity-80">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -227,10 +335,10 @@ export default function Message({
   };
   const [showAudioOriginal, setShowAudioOriginal] = useState(true);
   const renderContent = () => {
-    if (isAudio) {
+  if (isAudio) {
       return (
         <div className="flex flex-col items-start w-full">
-          <AudioMessage src={originalMessage} />
+      <AudioMessage src={originalMessage} ownMessage={ownMessage} />
           {!ownMessage && (
             <div className="flex gap-3 mt-2 w-full items-center">
               <button

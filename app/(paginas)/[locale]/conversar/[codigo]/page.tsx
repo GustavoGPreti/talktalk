@@ -93,6 +93,7 @@ export default function RoomPage() {
   const audioChunksRef = useRef<Blob[]>([]);
 
   const router = useRouter();
+  const shareLink = (process.env.NEXT_PUBLIC_VERCEL_URL || (typeof window !== 'undefined' ? window.location.origin : '')) + '/conversar/' + codigo;
 
   const {
     mensagens,
@@ -1164,19 +1165,33 @@ export default function RoomPage() {
                       {t('chat.compartilhar.ou_acessar_link')}
                     </motion.span>
                     <motion.div
-                      className="flex gap-2 items-center"
+                      className="flex flex-col md:flex-row items-center md:items-start justify-center gap-4 md:gap-8"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
                     >
-                      <span className="rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50 p-3 font-semibold text-blue-600 dark:text-blue-400">
-                        {process.env.NEXT_PUBLIC_VERCEL_URL}/conversar/{codigo}
-                      </span>
-                      <CopyButton
-                        copy={process.env.NEXT_PUBLIC_VERCEL_URL + '/conversar/' + codigo}
-                        text="Copy"
-                        sucessText='Copied!'
-                      />
+                      <div className="flex gap-2 items-center justify-center">
+                        <span className="rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50 p-3 font-semibold text-blue-600 dark:text-blue-400">
+                          {shareLink} 
+                        </span>
+                        <CopyButton
+                          copy={shareLink}
+                          text="Copy"
+                          sucessText='Copied!'
+                        />
+                      </div>
+                      <div className="flex flex-col items-center md:items-start gap-2">
+                        <div className="p-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 border border-gray-200/60 dark:border-gray-700/60 shadow-lg">
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareLink)}`}
+                            alt="QR Code"
+                            className="h-[220px] w-[220px]"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[240px] text-center md:text-left">
+                          Escaneie este QR Code com a câmera do seu celular para acessar o link rapidamente.
+                        </p>
+                      </div>
                     </motion.div>
                   </div>
                 </motion.div>
@@ -1343,35 +1358,43 @@ export default function RoomPage() {
                 value={mensagem}
                 size="lg"
               />
-            </div>            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                isIconOnly
-                onClick={sendMessage}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl w-12 h-12 sm:w-14 sm:h-14"
-                size="lg"
-              >
-                <IoIosSend className={'text-xl sm:text-2xl'} />
-              </Button>
-            </motion.div>
-            <EmojiPicker 
-              onEmojiSelect={handleEmojiSelect}
-              className=""
-            />
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              {' '}
-              <Button
-                isIconOnly
-                onClick={recAudio}
-                color={isRecording ? 'danger' : 'primary'}
-                className={`${isRecording
-                    ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
-                    : 'bg-gradient-to-r from-primary-500 to-secondary-600 hover:from-primary-600 hover:to-secondary-700'
-                } text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl w-12 h-12 sm:w-14 sm:h-14`}
-                size="lg"
-              >
-                <IoMicOutline className={`text-xl sm:text-2xl ${isRecording ? 'animate-pulse' : ''}`} />
-              </Button>
-            </motion.div>
+            </div>
+            {/* Action slot: shows either Mic (when empty or recording) or Send (when has text) */}
+            {(() => {
+              const hasText = mensagem.trim().length > 0;
+              const showMic = isRecording || !hasText;
+              const showSend = !isRecording && hasText;
+              return (
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  {showMic ? (
+                    <Button
+                      isIconOnly
+                      onClick={recAudio}
+                      color={isRecording ? 'danger' : 'primary'}
+                      className={`${isRecording
+                          ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
+                          : 'bg-gradient-to-r from-primary-500 to-secondary-600 hover:from-primary-600 hover:to-secondary-700'
+                      } text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl w-12 h-12 sm:w-14 sm:h-14`}
+                      size="lg"
+                      aria-label={isRecording ? t('chat.audio.parar_gravacao') : t('chat.audio.iniciar_gravacao')}
+                    >
+                      <IoMicOutline className={`text-xl sm:text-2xl ${isRecording ? 'animate-pulse' : ''}`} />
+                    </Button>
+                  ) : showSend ? (
+                    <Button
+                      isIconOnly
+                      onClick={sendMessage}
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl w-12 h-12 sm:w-14 sm:h-14"
+                      size="lg"
+                      aria-label={t('chat.interface.enviar')}
+                    >
+                      <IoIosSend className={'text-xl sm:text-2xl'} />
+                    </Button>
+                  ) : null}
+                </motion.div>
+              );
+            })()}
+            <EmojiPicker onEmojiSelect={handleEmojiSelect} className="" />
           </ChatComponent.Footer>
         </motion.section>{' '}
         {isSettingsOpen && (
