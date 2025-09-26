@@ -75,6 +75,20 @@ const io = require('socket.io')(server, {
   connectTimeout: 45000,
 });
 
+// In-memory state for private rooms
+const privateRooms = new Set();
+
+// HTTP endpoint to check if a room is currently private
+app.get('/privacy/:room', (req, res) => {
+  try {
+    const room = String(req.params.room || '').toLowerCase();
+    const isPrivate = privateRooms.has(room);
+    res.json({ private: !!isPrivate });
+  } catch (e) {
+    res.status(500).json({ private: false });
+  }
+});
+
 io.on('connection', (socket) => {
   console.log('Novo cliente conectado:', socket.id);
 
@@ -159,11 +173,21 @@ io.on('connection', (socket) => {
         socket.emit('error', getTranslation(userLanguage, 'roomNotFound'));
         return;
       }
-      const isHost = parsedUserData.userToken === sala.hostToken;
+  const isHost = parsedUserData.userToken === sala.hostToken;
+  // Expose minimal identity metadata on the socket for later checks
+  socket.data.userToken = parsedUserData.userToken;
+  socket.data.isHost = isHost;
+  socket.data.room = room;
       
       const isUserInRoom = await prisma.salas_Usuarios.findUnique({
         where: { codigoSala_userData: { codigoSala: room, userData: encryptResult.data } },
       });
+
+      // If room is private and this user isn't already in it, block entry
+      if (privateRooms.has(room) && !isUserInRoom) {
+        socket.emit('room-private', 'Esta sala é privada no momento.');
+        return;
+      }
 
       if (!isUserInRoom) {
         try {
@@ -337,6 +361,124 @@ io.on('connection', (socket) => {
   });
 
   socket.on('user-activity', ({ userToken, room }) => {});
+
+  // Host toggles room privacy
+  socket.on('room:privacy', async ({ room, private: isPrivate }) => {
+    try {
+      if (!socket.data?.isHost || socket.data?.room !== room) return;
+      if (isPrivate) privateRooms.add(room); else privateRooms.delete(room);
+      io.to(room).emit('room:privacy-changed', { private: !!isPrivate });
+    } catch (e) {
+      console.error('Erro ao alterar privacidade da sala:', e);
+    }
+  });
+
+  // Host kicks a user from the room
+  socket.on('room:kick-user', async ({ room, targetUserToken }) => {
+    try {
+      if (!socket.data?.isHost || socket.data?.room !== room) return;
+      // Find target socket by user token within the room
+      const roomSet = io.sockets.adapter.rooms.get(room);
+      if (!roomSet) return;
+      for (const socketId of roomSet) {
+        const client = io.sockets.sockets.get(socketId);
+        if (client?.data?.userToken === targetUserToken) {
+          try {
+            // Remove from DB
+            if (prisma) {
+              // Need to locate encrypted userData string for this client
+              // We don't store it in client.data; as a fallback, delete by matching userToken: decrypt all users and find match
+              const roomUsers = await prisma.salas_Usuarios.findMany({ where: { codigoSala: room } });
+              let cryptoApiBaseUrl;
+              if (process.env.NEXT_PUBLIC_VERCEL_URL) {
+                const domain = process.env.NEXT_PUBLIC_VERCEL_URL.replace(/^http[s]?:\/\//, '');
+                cryptoApiBaseUrl = `${process.env.NEXT_PUBLIC_PROTOCOL || 'https'}://${domain}`;
+              } else {
+                cryptoApiBaseUrl = 'http://localhost:3000';
+              }
+              const cryptoApiEndpoint = `${cryptoApiBaseUrl}/api/crypto`;
+              const fetchMod = await import('node-fetch');
+              let targetEncryptedUserData = null;
+              for (const rec of roomUsers) {
+                let fetchOptionsDecrypt = {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.CRYPTO_API_KEY}` },
+                  body: JSON.stringify({ data: rec.userData, action: 'decryptUserData' }),
+                };
+                if (process.env.NODE_ENV === 'development' && (cryptoApiEndpoint.startsWith('http://localhost') || cryptoApiEndpoint.startsWith('http://127.0.0.1'))) {
+                  const http = require('http');
+                  const agent = new http.Agent({ rejectUnauthorized: false });
+                  fetchOptionsDecrypt.agent = agent;
+                }
+                const resp = await fetchMod.default(cryptoApiEndpoint, fetchOptionsDecrypt);
+                if (!resp.ok) continue;
+                const dec = await resp.json();
+                if (dec?.data?.userToken === targetUserToken) {
+                  targetEncryptedUserData = rec.userData;
+                  break;
+                }
+              }
+              if (targetEncryptedUserData) {
+                await prisma.salas_Usuarios.deleteMany({ where: { codigoSala: room, userData: targetEncryptedUserData } });
+                await prisma.salas.update({ where: { codigoSala: room }, data: { updateAt: new Date() } });
+              }
+            }
+          } catch (e) {
+            console.error('Erro ao remover usuário do banco ao expulsar:', e);
+          }
+          // Notify and disconnect
+          client.emit('kicked');
+          client.leave(room);
+          try { client.disconnect(true); } catch {}
+
+          // Refresh users list for the room
+          try {
+            if (prisma) {
+              const roomUsers = await prisma.salas_Usuarios.findMany({ where: { codigoSala: room } });
+              // decrypt and emit as in existing paths
+              let cryptoApiEndpoint;
+              if (process.env.NEXT_PUBLIC_VERCEL_URL) {
+                const domain = process.env.NEXT_PUBLIC_VERCEL_URL.replace(/^http[s]?:\/\//, '');
+                cryptoApiEndpoint = `${process.env.NEXT_PUBLIC_PROTOCOL || 'https'}://${domain}/api/crypto`;
+              } else {
+                cryptoApiEndpoint = 'http://localhost:3000/api/crypto';
+              }
+              const fetchMod = await import('node-fetch');
+              const decryptedUsers = await Promise.all(
+                roomUsers.map(async (user) => {
+                  try {
+                    let fetchOptionsDecrypt = {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.CRYPTO_API_KEY}` },
+                      body: JSON.stringify({ data: user.userData, action: 'decryptUserData' }),
+                    };
+                    if (process.env.NODE_ENV === 'development' && (cryptoApiEndpoint.startsWith('http://localhost') || cryptoApiEndpoint.startsWith('http://127.0.0.1'))) {
+                      const http = require('http');
+                      const agent = new http.Agent({ rejectUnauthorized: false });
+                      fetchOptionsDecrypt.agent = agent;
+                    }
+                    const decryptResponse = await fetchMod.default(cryptoApiEndpoint, fetchOptionsDecrypt);
+                    if (!decryptResponse.ok) return null;
+                    const decryptResult = await decryptResponse.json();
+                    return { userData: decryptResult.data, host: user.host };
+                  } catch {
+                    return null;
+                  }
+                })
+              );
+              const valid = decryptedUsers.filter(Boolean);
+              io.to(room).emit('users-update', valid);
+            }
+          } catch (e) {
+            console.error('Erro ao atualizar lista de usuários após kick:', e);
+          }
+          break;
+        }
+      }
+    } catch (e) {
+      console.error('Erro em room:kick-user:', e);
+    }
+  });
 
   socket.on('sendMessage', async (message, userToken, color, apelido, avatar, room, lingua, type) => {
     const actualDate = new Date().toISOString();

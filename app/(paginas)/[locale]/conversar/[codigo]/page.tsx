@@ -9,6 +9,7 @@ import CopyButton from '@/app/components/functionals/CopyButton.tsx';
 import linguagens from '@/app/locales/languages.json';
 import { descriptografarUserData, criptografarUserData, criptografar } from '@/app/services/cryptoService';
 import fetchRoom from '@/app/utils/roomManagement/fetchRoom.tsx';
+import checkRoomPrivacy from '@/app/utils/roomManagement/checkRoomPrivacy';
 import fetchRoomUsers from '@/app/utils/roomManagement/fetchRoomUsers.tsx';
 import { RandomAvatarColor } from '@/app/utils/strings/randomAvatarColor.tsx';
 import { RandomNicks } from '@/app/utils/strings/randomNicks.tsx';
@@ -54,6 +55,7 @@ export default function RoomPage() {
   );
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isRoomPrivateEarly, setIsRoomPrivateEarly] = useState<boolean>(false);
   const [hostModal, setHostModal] = useState<boolean>(false);
   const [cookies, setCookies] = useCookies(['talktalk_roomid', 'talktalk_userdata']);
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -249,6 +251,26 @@ export default function RoomPage() {
           setSocketClient(socket);
           return;
         }
+        // If user is trying to enter (non-bypass), check privacy just-in-time; allow host to bypass
+        try {
+          const priv = await checkRoomPrivacy(codigo);
+          if (priv) {
+            let allow = false;
+            try {
+              if (cookies.talktalk_userdata) {
+                const userDec = await descriptografarUserData(cookies.talktalk_userdata as string);
+                const salaChk = await fetchRoom(codigo);
+                if (userDec?.data?.userToken && salaChk?.hostToken) {
+                  allow = userDec.data.userToken === salaChk.hostToken;
+                }
+              }
+            } catch {}
+            if (!allow) {
+              setIsRoomPrivateEarly(true);
+              return;
+            }
+          }
+        } catch {}
         const sala = await fetchRoom(codigo);
 
         if (!sala) {
@@ -334,6 +356,27 @@ export default function RoomPage() {
 
   const fetchSala = useCallback(async () => {
     try {
+      // Early guard: check privacy before anything else; if private, only host can proceed
+      try {
+        const priv = await checkRoomPrivacy(codigo);
+        if (priv) {
+          let allow = false;
+          try {
+            if (cookies.talktalk_userdata) {
+              const userDec = await descriptografarUserData(cookies.talktalk_userdata as string);
+              const salaChk = await fetchRoom(codigo);
+              if (userDec?.data?.userToken && salaChk?.hostToken) {
+                allow = userDec.data.userToken === salaChk.hostToken;
+              }
+            }
+          } catch {}
+          if (!allow) {
+            setIsRoomPrivateEarly(true);
+            return;
+          }
+        }
+      } catch {}
+
       const sala = await fetchRoom(codigo);
       const salas_usuarios = await fetchRoomUsers(codigo);
 
@@ -513,14 +556,29 @@ export default function RoomPage() {
     socketClient.on('user-disconnected', handleUserDisconnected);
     socketClient.on('message', handleMessage);
     socketClient.on('users-typing', handleUsersTyping);
+    // Admin-related events
+    socketClient.on('room:privacy-changed', ({ private: isPriv }) => {
+      try { setIsRoomPrivate(!!isPriv); } catch {}
+    });
+    socketClient.on('room-private', (msg) => {
+      toast.info(msg || t('chat.sala_privada.aviso'));
+    });
+    socketClient.on('kicked', () => {
+      toast.error(t('chat.interface.voce_foi_expulso'));
+      try { socketClient.disconnect(); } catch {}
+      router.push(`/${locale}/conversar`);
+    });
     return () => {
       socketClient.off('connect', handleConnect);
       socketClient.off('users-update', handleUsersUpdate);
       socketClient.off('user-disconnected', handleUserDisconnected);
       socketClient.off('message', handleMessage);
       socketClient.off('users-typing', handleUsersTyping);
+      socketClient.off('room:privacy-changed');
+      socketClient.off('room-private');
+      socketClient.off('kicked');
     };
-  }, [socketClient, userData, salaData?.hostToken, codigo, handleMessage, handleTyping, setPessoasConectadas]);
+  }, [socketClient, userData, salaData?.hostToken, codigo, handleMessage, handleTyping, setPessoasConectadas, t, locale, router]);
 
   useEffect(() => {
     if (messageListRef.current) {
@@ -912,6 +970,58 @@ export default function RoomPage() {
       }, 1000);
     }, 500);
   }, [socketClient, userData, codigo, locale]);
+
+  // Keep isHost in sync with sala host token
+  useEffect(() => {
+    try {
+      const hostToken = (salaData as any)?.hostToken;
+      if (userData?.userToken && hostToken) {
+        setIsHost(userData.userToken === hostToken);
+      }
+    } catch {}
+  }, [userData?.userToken, salaData]);
+
+  // Host-only admin controls
+  const [isRoomPrivate, setIsRoomPrivate] = useState<boolean>(false);
+  const [kickTarget, setKickTarget] = useState<null | { userToken: string; apelido: string }>(null);
+
+  useEffect(() => {
+    // Try to initialize from salaData if available
+    try {
+      if (typeof (salaData as any)?.private === 'boolean') {
+        setIsRoomPrivate(!!(salaData as any).private);
+      }
+    } catch {}
+  }, [/* salaData may update elsewhere */]);
+
+  const toggleRoomPrivacy = useCallback(
+    (nextValue: boolean) => {
+      setIsRoomPrivate(nextValue);
+      try {
+        socketClient?.emit('room:privacy', { room: codigo, private: nextValue });
+      } catch (e) {
+        console.error('Failed to emit room:privacy', e);
+      }
+    },
+    [socketClient, codigo]
+  );
+
+  const requestKickUser = useCallback((userToken: string, apelido: string) => {
+    setKickTarget({ userToken, apelido });
+  }, []);
+
+  const confirmKickUser = useCallback(() => {
+    if (!kickTarget) return;
+    try {
+      socketClient?.emit('room:kick-user', { room: codigo, targetUserToken: kickTarget.userToken });
+      toast.info(`${kickTarget.apelido} será removido da sala.`);
+    } catch (e) {
+      console.error('Failed to emit room:kick-user', e);
+      toast.error('Não foi possível expulsar o usuário.');
+    } finally {
+      setKickTarget(null);
+    }
+  }, [kickTarget, socketClient, codigo]);
   if (showErrorModal) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
@@ -936,6 +1046,29 @@ export default function RoomPage() {
 
   if (typeof window == null) {
     return null;
+  }
+  if (isRoomPrivateEarly) {
+    return (
+      <div className="h-[calc(100vh-2rem)] m-2 bg-gradient-to-br from-gray-50 via-blue-50/30 to-cyan-50/40 dark:from-[#0f0f0f] dark:via-[#1a1a2e] dark:to-[#16213e] relative overflow-hidden flex items-center justify-center">
+        <LanguageDetector />
+        <motion.div
+          className="w-fit max-w-md mx-auto p-6 rounded-3xl flex flex-col items-center justify-center gap-6 text-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-white/30 dark:border-gray-700/40 shadow-2xl relative overflow-hidden"
+          initial={{ opacity: 0, scale: 0.9, y: 50 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+            {t('chat.sala_privada.titulo', 'Sala privada')}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300">
+            {t('chat.sala_privada.aviso', 'Esta sala é privada no momento. Tente novamente mais tarde ou peça acesso ao anfitrião.')}
+          </p>
+          <Button onPress={() => router.push(`/${locale}/conversar`)} color="primary" variant="solid">
+            {t('chat.interface.voltar_pagina_sala')}
+          </Button>
+        </motion.div>
+      </div>
+    );
   }
   if (showNameInput) {
     return (
@@ -1111,6 +1244,35 @@ export default function RoomPage() {
       </div>
 
       <div className="relative z-10 p-2 sm:p-4 h-[calc(100vh-4rem)] flex flex-col lg:flex-row gap-2 sm:gap-4 max-w-full overflow-hidden">
+        {/* Kick confirmation modal */}
+        <Modal
+          isOpen={!!kickTarget}
+          onClose={() => setKickTarget(null)}
+          isDismissable
+          backdrop="opaque"
+          classNames={{ backdrop: 'bg-black/40 backdrop-blur-sm' }}
+        >
+          <ModalContent className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-white/20 dark:border-gray-700/30">
+            <>
+              <ModalBody>
+                <div className="py-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Expulsar usuário</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    Tem certeza que deseja expulsar {kickTarget?.apelido} desta sala?
+                  </p>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={() => setKickTarget(null)}>
+                  Cancelar
+                </Button>
+                <Button color="danger" onPress={confirmKickUser}>
+                  Expulsar
+                </Button>
+              </ModalFooter>
+            </>
+          </ModalContent>
+        </Modal>
         <Modal
           isOpen={hostModal}
           backdrop="opaque"
@@ -1463,6 +1625,29 @@ export default function RoomPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                 >
+                  {isHost && (
+                    <div className="w-full">
+                      <Switch
+                        isSelected={isRoomPrivate}
+                        onValueChange={toggleRoomPrivacy}
+                        classNames={{
+                          base: 'inline-flex flex-row-reverse gap-2 md:gap-3 !w-full bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 items-center cursor-pointer p-3 md:p-4 border border-white/30 dark:border-gray-700/30 rounded-xl transition-all duration-200 shadow-md',
+                          wrapper: 'flex-none',
+                          endContent: 'flex-1 min-w-0',
+                          label: 'w-full',
+                        }}
+                      >
+                        <div className="flex flex-col gap-1 min-w-0">
+                          <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 truncate text-responsive">
+                            Sala privada
+                          </p>
+                          <p className="text-xs md:text-xs text-gray-600 dark:text-gray-400 line-clamp-2 text-responsive">
+                            Apenas convidados com link poderão entrar quando ativado.
+                          </p>
+                        </div>
+                      </Switch>
+                    </div>
+                  )}
                   <div className="w-full">
                     <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 rounded-xl p-3 md:p-4 shadow-md">
                       <div className="flex items-center gap-3">
@@ -1698,6 +1883,15 @@ export default function RoomPage() {
                           {user.host ? t('chat.usuarios_online.anfitriao') : t('chat.usuarios_online.convidado')}
                         </span>
                       </div>
+                      {isHost && user.userToken !== userData?.userToken && (
+                        <button
+                          onClick={() => requestKickUser(user.userToken, user.apelido)}
+                          className="ml-auto px-2 py-1 text-xs rounded-md bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400 transition-colors"
+                          aria-label={`Expulsar ${user.apelido}`}
+                        >
+                          Expulsar
+                        </button>
+                      )}
                     </motion.div>
                   ))
                 ) : (
