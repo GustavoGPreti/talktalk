@@ -8,6 +8,7 @@ export async function transcriptAudio({
     lingua,
 }: { audioBase64: string; lingua: any }) {
     const form = new FormData();
+    console.log(lingua);
     form.append("base64File", audioBase64);
     form.append("lingua", lingua.value);
 
@@ -20,9 +21,14 @@ export async function transcriptAudio({
     });
 
     if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`Transcription failed: ${res.status} ${err}`);
+        console.log(res.status)
+        return { status: res.status };
+        // throw new Error(`Transcription failed: ${res.status} ${err}`);
     }
     const response = await res.json();
-    return response.transcription;
+    if (!response.translated || response.translated === "") {
+        return response.transcription;
+    } else {
+        return response.translated;
+    }
 }

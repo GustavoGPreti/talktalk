@@ -2,7 +2,7 @@ import { transcriptAudio } from '@/app/utils/transcript/transcript';
 import { LoaderCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export default function TranscriptButton({ lingua, base64 }: {  lingua: string, base64: string }) {
+export default function TranscriptButton({ lingua, base64 }: { lingua: string; base64: string }) {
     const [showingTranscript, setShowingTranscript] = useState(false);
     const [showingMore, setShowingMore] = useState(false);
     const [loadingTranscript, setLoadingTranscript] = useState(false);
@@ -10,10 +10,28 @@ export default function TranscriptButton({ lingua, base64 }: {  lingua: string, 
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await transcriptAudio({ audioBase64: base64, lingua: lingua });
-            setTranscriptText(response);
-            setShowingTranscript(true);
-            setLoadingTranscript(false);
+            try {
+                const savedSettings = localStorage.getItem('talktalk_user_settings');
+                let ownLingua = null;
+                if (savedSettings) {
+                    const settings = JSON.parse(savedSettings);
+                    ownLingua = settings.linguaSelecionada;
+                }
+                const response = await transcriptAudio({ audioBase64: base64, lingua: ownLingua || lingua });
+                console.log(response)
+                if (response.status) {
+                    setTranscriptText('Não foi possível transcrever o áudio.');
+                    setShowingTranscript(true);
+                    setLoadingTranscript(false);
+                    return;
+                }
+                setTranscriptText(response);
+                setShowingTranscript(true);
+                setLoadingTranscript(false);
+            } catch (error) {
+                console.error('Erro ao transcrever áudio:', error);
+                setTranscriptText('Erro ao transcrever áudio.');
+            }
         };
 
         if (loadingTranscript) {
@@ -31,7 +49,7 @@ export default function TranscriptButton({ lingua, base64 }: {  lingua: string, 
                 className="cursor-pointer text-xs text-primary-400 hover:text-primary-500 hover:underline bg-transparent p-0 m-0 border-0 shadow-none"
                 style={{ minWidth: 0 }}
                 onClick={() => setLoadingTranscript((prev) => true)}
-                // disabled={loadingTranscript}
+            // disabled={loadingTranscript}
             >
                 Transcrever áudio
             </button>

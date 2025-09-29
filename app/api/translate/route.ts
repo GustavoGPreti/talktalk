@@ -39,9 +39,8 @@ export async function POST(request: Request) {
     const mappedLanguage = languageMapping[targetLanguage.trim()] || targetLanguage.trim();
     
 
-    const translation = await translate(text, { to: mappedLanguage, autoCorrect: true });
+    const translation = await translate(text, { to: mappedLanguage, autoCorrect: true, forceTo: true });
     const translationText = Array.isArray(translation) ? translation[0].text : translation.text;
-    const translationTextStr = typeof translationText === 'string' ? translationText : String(translationText);
 
 
     return NextResponse.json({

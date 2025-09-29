@@ -3,16 +3,12 @@ import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'clo
 import { Writable } from 'stream';
 import { createClient } from '@deepgram/sdk';
 import linguasTranscript from "@/app/jsons/languages_stt.json";
+import translate from 'google-translate-api-x';
 
 const deepgramApiKey = process.env.DEEPGRAM_API_KEY || '';
 const deepgram = createClient(deepgramApiKey);
 
 cloudinary.config();
-
-const bufferFile = async (file: File): Promise<Buffer> => {
-    const arrayBuffer = await file.arrayBuffer();
-    return Buffer.from(arrayBuffer);
-};
 
 export async function POST(request: Request): Promise<NextResponse> {
     const authorization = request.headers.get('authorization');
@@ -28,6 +24,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const file = formData.get('base64File') as File | string | null;
     const lingua = formData.get('lingua');
 
+
     if (!lingua || typeof lingua !== "string") {
         return NextResponse.json(
             { error: "Língua não especificada." },
@@ -37,7 +34,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     if(!linguasTranscript[lingua as string]) {
         return NextResponse.json(
-            { error: "Língua para transcrição inválida." },
+            { error: "Língua para transcrição não disponível." },
             { status: 400 }
         );
     }
@@ -88,7 +85,7 @@ export async function POST(request: Request): Promise<NextResponse> {
             { url: result.secure_url },
             {
                 model: 'nova-3',
-                language: lingua,
+                language: "multi",
                 smart_format: true,
             },
         );
@@ -98,12 +95,21 @@ export async function POST(request: Request): Promise<NextResponse> {
         }
 
         if (transcription?.results.channels[0].alternatives[0].transcript) {
+            let translated: any = "";
+            try {
+                console.log(lingua)
+                translated = await translate(transcription.results.channels[0].alternatives[0].transcript, { to: lingua, autoCorrect: true, forceTo: true });
+            } catch (error) {
+                console.error('Erro na tradução:', error);
+            }
             return NextResponse.json({
                 message: 'Upload e transcrição bem-sucedidos!',
                 transcription: transcription.results.channels[0].alternatives[0].transcript,
                 id: result.public_id,
                 url: result.secure_url,
-                lingua: lingua || 'pt'
+                translated: translated.text,
+                lingua: lingua || "",
+                status: 200
             });
         }
 

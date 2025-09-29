@@ -1,7 +1,6 @@
 import moment from 'moment-timezone';
 import Image from 'next/image';
 import { Moment } from 'moment-timezone';
-import { supportedLanguages } from '@/app/api/translate/languages';
 import { useState, useEffect } from 'react';
 import { Play, Pause, AlertCircle } from 'lucide-react';
 import * as React from 'react';

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { Spinner } from "@heroui/react";
@@ -42,6 +42,9 @@ function ChatBodyBase({
   onGoToBottom,
   messageListRef,
 }: ChatBodyProps) {
+  useEffect(() => {
+    console.log("Rendering ChatBody with messages:", mensagens);
+  }, [mensagens]);
   return (
     <div className="relative h-full">
       <MessageList

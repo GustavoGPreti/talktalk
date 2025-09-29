@@ -28,7 +28,8 @@ export function useChat({ socketClient, userData, codigo }: UseChatProps) {
       const savedSettings = localStorage.getItem('talktalk_user_settings');
       if (savedSettings) {
         try {
-          const settings = JSON.parse(savedSettings);          if (settings.linguaSelecionada?.value) {
+          const settings = JSON.parse(savedSettings);          
+          if (settings.linguaSelecionada?.value) {
             linguaSelecionadaRef.current = settings.linguaSelecionada.value;
           }
         } catch (error) {
@@ -114,7 +115,6 @@ export function useChat({ socketClient, userData, codigo }: UseChatProps) {
       if (!isOwnMessage && message.lingua !== linguaSelecionadaRef.current && linguaSelecionadaRef.current.trim() !== '') {
         setMessageLoading(true);
         
-        
         const response = await fetch('/api/translate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -126,6 +126,7 @@ export function useChat({ socketClient, userData, codigo }: UseChatProps) {
 
         if (!response.ok) throw new Error('Erro na tradução');
         const { result: traduzido } = await response.json();
+        console.log('Mensagem traduzida:', traduzido);
 
         setMensagens((prev) => [
           ...prev,
@@ -334,6 +335,7 @@ export function useChat({ socketClient, userData, codigo }: UseChatProps) {
     handleTyping,
     usersInRoom,
     onLinguaChange,
+    linguaSelecionadaRef,
     isTyping,
     emitTypingStatus,
   };
