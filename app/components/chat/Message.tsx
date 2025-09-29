@@ -10,6 +10,7 @@ import { useSpeech } from '@/app/contexts/SpeechContext';
 import { useTranslation } from '@/app/contexts/TranslationContext';
 import { useFontSize } from '@/app/contexts/FontSizeContext';
 import { useTranslation as useI18nTranslation } from 'react-i18next';
+import TranscriptButton from './Transcript';
 
 interface MessageProps {
   isAudio: boolean;
@@ -210,7 +211,10 @@ function AudioMessage({ src, ownMessage = false }: { src: string; ownMessage?: b
       audio.pause();
       setIsPlaying(false);
     } else {
-      audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+      audio
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
     }
   };
 
@@ -226,7 +230,9 @@ function AudioMessage({ src, ownMessage = false }: { src: string; ownMessage?: b
   const formatTime = (sec: number) => {
     if (!isFinite(sec)) return '0:00';
     const m = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60).toString().padStart(2, '0');
+    const s = Math.floor(sec % 60)
+      .toString()
+      .padStart(2, '0');
     return `${m}:${s}`;
   };
 
@@ -275,9 +281,7 @@ function AudioMessage({ src, ownMessage = false }: { src: string; ownMessage?: b
           >
             <div
               className={`h-2 rounded-full transition-[width] duration-100 ease-linear ${
-                ownMessage
-                  ? 'bg-white/70'
-                  : 'bg-gradient-to-r from-primary-400 to-secondary-500'
+                ownMessage ? 'bg-white/70' : 'bg-gradient-to-r from-primary-400 to-secondary-500'
               }`}
               style={{ width: `${progressPct}%` }}
             />
@@ -298,7 +302,7 @@ function AudioMessage({ src, ownMessage = false }: { src: string; ownMessage?: b
   );
 }
 
-export default function Message({
+function Message({
   isAudio,
   children,
   date,
@@ -335,26 +339,13 @@ export default function Message({
   };
   const [showAudioOriginal, setShowAudioOriginal] = useState(true);
   const renderContent = () => {
-  if (isAudio) {
+    if (isAudio) {
       return (
         <div className="flex flex-col items-start w-full">
-      <AudioMessage src={originalMessage} ownMessage={ownMessage} />
+          <AudioMessage src={originalMessage} ownMessage={ownMessage} />
           {!ownMessage && (
             <div className="flex gap-3 mt-2 w-full items-center">
-              <button
-                className="text-xs text-primary-400 hover:text-primary-500 hover:underline bg-transparent p-0 m-0 border-0 shadow-none"
-                style={{ minWidth: 0 }}
-                disabled
-              >
-                Transcrever áudio
-              </button>
-              <button
-                className="text-xs text-primary-400 hover:text-primary-500 hover:underline bg-transparent p-0 m-0 border-0 shadow-none ml-2"
-                type="button"
-                onClick={() => setShowAudioOriginal((prev) => !prev)}
-              >
-                {showAudioOriginal ? t('chat.mensagem.ver_traducao') : t('chat.mensagem.ver_original')}
-              </button>
+              <TranscriptButton base64={originalMessage} lingua={lingua} />
             </div>
           )}
         </div>
@@ -397,9 +388,7 @@ export default function Message({
               <span className="font-medium" style={{ color: senderColor }}>
                 {senderApelido}:
               </span>{' '}
-              <span className="text-sm">
-                {renderContent()}
-              </span>
+              <span className="text-sm">{renderContent()}</span>
               {!ownMessage && !isAudio && (
                 <>
                   {' '}
@@ -408,11 +397,7 @@ export default function Message({
                     <div className="mt-1 flex">
                       {' '}
                       <p>
-                        {showOriginal ? (
-                          t('chat.mensagem.original')
-                        ) : (
-                          `${t('chat.mensagem.traduzido_de')} (${lingua})`
-                        )}
+                        {showOriginal ? t('chat.mensagem.original') : `${t('chat.mensagem.traduzido_de')} (${lingua})`}
                       </p>
                       <button
                         onClick={() => {
@@ -458,11 +443,7 @@ export default function Message({
                       {' '}
                       <div className="mt-1">
                         {' '}
-                        {showOriginal ? (
-                          t('chat.mensagem.original')
-                        ) : (
-                          `${t('chat.mensagem.traduzido_de')} (${lingua})`
-                        )}
+                        {showOriginal ? t('chat.mensagem.original') : `${t('chat.mensagem.traduzido_de')} (${lingua})`}
                         <button
                           onClick={() => {
                             setShowOriginal(!showOriginal);
@@ -488,3 +469,19 @@ export default function Message({
     </>
   );
 }
+
+export default React.memo(Message, (prev, next) => {
+  return (
+    prev.isAudio === next.isAudio &&
+    prev.ownMessage === next.ownMessage &&
+    prev.originalMessage === next.originalMessage &&
+    prev.senderApelido === next.senderApelido &&
+    prev.senderAvatar === next.senderAvatar &&
+    prev.senderColor === next.senderColor &&
+    prev.compact === next.compact &&
+    String(prev.date) === String(next.date) &&
+    prev.lingua === next.lingua &&
+    // children may be translated message content; rely on originalMessage to trigger rerender
+    true
+  );
+});

@@ -1,12 +1,30 @@
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 
-export default function ChatComponent({ children, className }: { children: ReactNode; className?: string }) {
+type SectionProps = { children: ReactNode; className?: string };
+
+const Section = React.memo(({ children, className }: SectionProps) => {
   return <div className={className}>{children}</div>;
-}
+});
 
-ChatComponent.Header = ChatComponent;
-ChatComponent.Body = ChatComponent;
-ChatComponent.Footer = ChatComponent;
-ChatComponent.Avatars = ChatComponent;
-ChatComponent.LanguageOptions = ChatComponent;
-ChatComponent.Settings = ChatComponent;
+type ChatCompound = React.MemoExoticComponent<({ children, className }: SectionProps) => React.ReactElement> & {
+  Header: typeof Section;
+  Body: typeof Section;
+  Footer: typeof Section;
+  Avatars: typeof Section;
+  LanguageOptions: typeof Section;
+  Settings: typeof Section;
+};
+
+const ChatComponentBase = React.memo(({ children, className }: SectionProps) => {
+  return <div className={className}>{children}</div>;
+});
+
+const ChatComponent = ChatComponentBase as ChatCompound;
+ChatComponent.Header = Section;
+ChatComponent.Body = Section;
+ChatComponent.Footer = Section;
+ChatComponent.Avatars = Section;
+ChatComponent.LanguageOptions = Section;
+ChatComponent.Settings = Section;
+
+export default ChatComponent;

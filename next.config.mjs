@@ -4,6 +4,11 @@ import MillionLint from "@million/lint";
 const nextConfig = {
   reactStrictMode: false,
   output: "standalone",
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "50mb",
+    }
+  },
   images: {
     remotePatterns: [
       {
@@ -15,6 +20,6 @@ const nextConfig = {
 };
 
 export default MillionLint.next({
-  enabled: false,
+  enabled: true,
   rsc: false
 })(nextConfig);

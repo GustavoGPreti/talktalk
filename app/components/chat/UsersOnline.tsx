@@ -1,12 +1,16 @@
 import Image from 'next/image';
 import { UserData } from '@/app/types/chat';
 import { useTranslation } from 'react-i18next';
+import React from 'react';
 
 interface UsersOnlineProps {
   users: UserData[];
+  isHost?: boolean;
+  selfToken?: string;
+  onKick?: (userToken: string, apelido: string) => void;
 }
 
-export default function UsersOnline({ users }: UsersOnlineProps) {
+function UsersOnline({ users, isHost = false, selfToken, onKick }: UsersOnlineProps) {
   const { t } = useTranslation('');
   
   return (
@@ -44,6 +48,14 @@ export default function UsersOnline({ users }: UsersOnlineProps) {
                   {user.host ? t('chat.usuarios_online.anfitriao') : t('chat.usuarios_online.convidado')}
                 </span>
               </div>
+              {isHost && user.userToken !== selfToken && onKick && (
+                <button
+                  onClick={() => onKick(user.userToken, user.apelido)}
+                  className="ml-auto px-2 py-1 text-xs rounded-md bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400 transition-colors"
+                >
+                  Expulsar
+                </button>
+              )}
             </div>
           ))
         ) : (
@@ -55,3 +67,13 @@ export default function UsersOnline({ users }: UsersOnlineProps) {
     </div>
   );
 }
+
+export default React.memo(UsersOnline, (prev, next) => {
+  if (prev.users.length !== next.users.length) return false;
+  // Shallow compare by userToken to detect meaningful changes
+  for (let i = 0; i < prev.users.length; i++) {
+    if (prev.users[i].userToken !== next.users[i].userToken) return false;
+    if (prev.users[i].host !== next.users[i].host) return false;
+  }
+  return true;
+});

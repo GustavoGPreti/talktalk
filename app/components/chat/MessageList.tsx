@@ -1,19 +1,18 @@
-import { ScrollShadow } from "@heroui/react";
-import { forwardRef, PropsWithChildren } from 'react';
+import { forwardRef, memo } from 'react';
 
 interface MessageListProps {
   children: React.ReactNode;
   className?: string;
 }
 
-const MessageList = forwardRef<HTMLDivElement, MessageListProps>(({ children, className }, ref) => {
+const MessageListBase = forwardRef<HTMLDivElement, MessageListProps>(({ children, className }, ref) => {
   return (
     <div ref={ref} className={className}>
       {children}
     </div>
   );
 });
+MessageListBase.displayName = 'MessageList';
 
-MessageList.displayName = 'MessageList';
-
+const MessageList = memo(MessageListBase);
 export default MessageList;

@@ -19,6 +19,7 @@ model Salas {
   hostToken         String
   Mensagens         Mensagens[]
   Salas_Usuarios    Salas_Usuarios[]
+  MensagensAudios   MensagensAudios[]
 }
 
 model Salas_Usuarios {
@@ -40,4 +41,14 @@ model Mensagens {
   avatar             String?
   linguaOriginal     String?  @default("pt")
   sala               Salas    @relation(fields: [codigoSala], references: [codigoSala])
+}
+
+model MensagensAudios {
+  id         Int      @id @default(autoincrement())
+  audioUrl   String   @db.VarChar(400)
+  usuario    String
+  dataEnvio  DateTime
+  codigoSala String
+  lingua     String?  @default("pt")
+  sala       Salas    @relation(fields: [codigoSala], references: [codigoSala])
 }

@@ -4,6 +4,8 @@ import ChatComponent from '@/app/components/chat/Chat.tsx';
 import Message from '@/app/components/chat/Message.tsx';
 import MessageList from '@/app/components/chat/MessageList.tsx';
 import EmojiPicker from '@/app/components/chat/EmojiPicker.tsx';
+import ChatBody from '@/app/components/chat/ChatBody';
+import Composer from '@/app/components/chat/Composer';
 import { CountryFlag } from '@/app/components/countryFlags.tsx';
 import CopyButton from '@/app/components/functionals/CopyButton.tsx';
 import linguagens from '@/app/locales/languages.json';
@@ -50,9 +52,10 @@ export default function RoomPage() {
     value: 'pt-BR',
     flag: 'BR',
   });
-  const [socketClient, setSocketClient] = useState<Socket | null>(null);  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error' | 'checking'>( 
-    'disconnected'
-  );
+  const [socketClient, setSocketClient] = useState<Socket | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<
+    'connecting' | 'connected' | 'disconnected' | 'error' | 'checking'
+  >('disconnected');
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isRoomPrivateEarly, setIsRoomPrivateEarly] = useState<boolean>(false);
@@ -60,7 +63,7 @@ export default function RoomPage() {
   const [cookies, setCookies] = useCookies(['talktalk_roomid', 'talktalk_userdata']);
   const messageListRef = useRef<HTMLDivElement>(null);
   const [showGoToBottom, setShowGoToBottom] = useState(false);
-  
+
   const [shiftPressed, setShiftPressed] = useState<boolean>(false);
   const [showNameInput, setShowNameInput] = useState(false);
   const [userName, setUserName] = useState('');
@@ -81,7 +84,7 @@ export default function RoomPage() {
   const [selectedIndex, setSelectedIndex] = useState<number | undefined>(undefined);
   const [showUserAlreadyInRoom, setShowUserAlreadyInRoom] = useState(false);
   const [apelido, setApelido] = useState('');
-  const [avatarDetails, setAvatarDetails] = useState<{ avatarURL: string; avatarName: string }>({ 
+  const [avatarDetails, setAvatarDetails] = useState<{ avatarURL: string; avatarName: string }>({
     avatarURL: '',
     avatarName: '',
   });
@@ -95,7 +98,10 @@ export default function RoomPage() {
   const audioChunksRef = useRef<Blob[]>([]);
 
   const router = useRouter();
-  const shareLink = (process.env.NEXT_PUBLIC_VERCEL_URL || (typeof window !== 'undefined' ? window.location.origin : '')) + '/conversar/' + codigo;
+  const shareLink =
+    (process.env.NEXT_PUBLIC_VERCEL_URL || (typeof window !== 'undefined' ? window.location.origin : '')) +
+    '/conversar/' +
+    codigo;
 
   const {
     mensagens,
@@ -466,12 +472,12 @@ export default function RoomPage() {
   }, [fetchSala, socketClient]);
   useEffect(() => {
     if (!socketClient) return;
-    
+
     const ensureConnection = () => {
       if (socketClient.disconnected) {
         setConnectionStatus('connecting');
         socketClient.connect();
-        
+
         setTimeout(() => {
           if (socketClient.connected && userData) {
             const userDataString = JSON.stringify(userData);
@@ -482,7 +488,7 @@ export default function RoomPage() {
     };
 
     ensureConnection();
-    
+
     const handleConnect = () => {
       setConnectionStatus('connected');
       if (userData) {
@@ -558,14 +564,18 @@ export default function RoomPage() {
     socketClient.on('users-typing', handleUsersTyping);
     // Admin-related events
     socketClient.on('room:privacy-changed', ({ private: isPriv }) => {
-      try { setIsRoomPrivate(!!isPriv); } catch {}
+      try {
+        setIsRoomPrivate(!!isPriv);
+      } catch {}
     });
     socketClient.on('room-private', (msg) => {
       toast.info(msg || t('chat.sala_privada.aviso'));
     });
     socketClient.on('kicked', () => {
       toast.error(t('chat.interface.voce_foi_expulso'));
-      try { socketClient.disconnect(); } catch {}
+      try {
+        socketClient.disconnect();
+      } catch {}
       router.push(`/${locale}/conversar`);
     });
     return () => {
@@ -578,7 +588,18 @@ export default function RoomPage() {
       socketClient.off('room-private');
       socketClient.off('kicked');
     };
-  }, [socketClient, userData, salaData?.hostToken, codigo, handleMessage, handleTyping, setPessoasConectadas, t, locale, router]);
+  }, [
+    socketClient,
+    userData,
+    salaData?.hostToken,
+    codigo,
+    handleMessage,
+    handleTyping,
+    setPessoasConectadas,
+    t,
+    locale,
+    router,
+  ]);
 
   useEffect(() => {
     if (messageListRef.current) {
@@ -628,9 +649,12 @@ export default function RoomPage() {
     setUserName(e.target.value);
   }, []);
 
-  const handleEmojiSelect = useCallback((emoji: string) => {
-    setMensagem(prev => prev + emoji);
-  }, [setMensagem]);
+  const handleEmojiSelect = useCallback(
+    (emoji: string) => {
+      setMensagem((prev) => prev + emoji);
+    },
+    [setMensagem]
+  );
 
   const recAudio = async () => {
     try {
@@ -650,7 +674,7 @@ export default function RoomPage() {
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
 
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
@@ -712,12 +736,7 @@ export default function RoomPage() {
             .normalize('NFD')
             .replace(/[̀-ͯ]/g, '')
             .toLowerCase()
-            .includes(
-              languagesFilterDebounced
-                .normalize('NFD')
-                .replace(/[̀-ͯ]/g, '')
-                .toLowerCase()
-            )
+            .includes(languagesFilterDebounced.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase())
         )
       : linguagens;
 
@@ -764,7 +783,7 @@ export default function RoomPage() {
               socketClient.connect();
               reconnectAttempts++;
             },
-            1000 * Math.min(reconnectAttempts + 1, 5) 
+            1000 * Math.min(reconnectAttempts + 1, 5)
           );
         } else {
           setConnectionStatus('error');
@@ -829,7 +848,7 @@ export default function RoomPage() {
         try {
           setConnectionStatus('connecting');
           socketClient.connect();
-          
+
           const reconnectionTimeout = setTimeout(() => {
             if (socketClient.connected) {
               const userDataString = JSON.stringify(userData);
@@ -841,7 +860,6 @@ export default function RoomPage() {
           }, 2000);
 
           return () => clearTimeout(reconnectionTimeout);
-          
         } catch (error) {
           setConnectionStatus('error');
         }
@@ -861,7 +879,7 @@ export default function RoomPage() {
     if (!socketClient) return;
 
     let disconnectedCount = 0;
-    const maxDisconnectedChecks = 3; 
+    const maxDisconnectedChecks = 3;
     let reconnectionAttempts = 0;
     const maxReconnectionAttempts = 3;
 
@@ -874,29 +892,32 @@ export default function RoomPage() {
 
       setConnectionStatus((prevStatus) => {
         if (prevStatus !== realStatus) {
-          
           if (realStatus === 'disconnected') {
             disconnectedCount++;
           } else if (realStatus === 'connected') {
             disconnectedCount = 0;
             reconnectionAttempts = 0;
           }
-          
+
           return realStatus;
         }
         return prevStatus;
       });
 
-      if (realStatus === 'disconnected' && disconnectedCount >= maxDisconnectedChecks && reconnectionAttempts < maxReconnectionAttempts) {
+      if (
+        realStatus === 'disconnected' &&
+        disconnectedCount >= maxDisconnectedChecks &&
+        reconnectionAttempts < maxReconnectionAttempts
+      ) {
         reconnectionAttempts++;
-        disconnectedCount = 0; 
-        
+        disconnectedCount = 0;
+
         setConnectionStatus('connecting');
-        
+
         try {
           if (socketClient.disconnected) {
             socketClient.connect();
-            
+
             setTimeout(() => {
               if (socketClient.connected && userData) {
                 const userDataString = JSON.stringify(userData);
@@ -907,7 +928,8 @@ export default function RoomPage() {
         } catch (error) {
           console.error('[DEBUG] Error during reconnection attempt:', error);
           setConnectionStatus('error');
-        }      } else if (realStatus === 'disconnected' && reconnectionAttempts >= maxReconnectionAttempts) {
+        }
+      } else if (realStatus === 'disconnected' && reconnectionAttempts >= maxReconnectionAttempts) {
         setConnectionStatus('error');
       }
     };
@@ -924,7 +946,7 @@ export default function RoomPage() {
     if (connectionStatus === 'error') {
       toast.error(t('chat.status_conexao.erro_persistente'), {
         position: 'bottom-right',
-        autoClose: 0, 
+        autoClose: 0,
       });
     }
   }, [connectionStatus, t]);
@@ -952,16 +974,16 @@ export default function RoomPage() {
 
   const forceReconnect = useCallback(() => {
     if (!socketClient) return;
-    
+
     setConnectionStatus('connecting');
-    
+
     if (socketClient.connected) {
       socketClient.disconnect();
     }
-    
+
     setTimeout(() => {
       socketClient.connect();
-      
+
       setTimeout(() => {
         if (socketClient.connected && userData) {
           const userDataString = JSON.stringify(userData);
@@ -985,14 +1007,19 @@ export default function RoomPage() {
   const [isRoomPrivate, setIsRoomPrivate] = useState<boolean>(false);
   const [kickTarget, setKickTarget] = useState<null | { userToken: string; apelido: string }>(null);
 
-  useEffect(() => {
-    // Try to initialize from salaData if available
-    try {
-      if (typeof (salaData as any)?.private === 'boolean') {
-        setIsRoomPrivate(!!(salaData as any).private);
-      }
-    } catch {}
-  }, [/* salaData may update elsewhere */]);
+  useEffect(
+    () => {
+      // Try to initialize from salaData if available
+      try {
+        if (typeof (salaData as any)?.private === 'boolean') {
+          setIsRoomPrivate(!!(salaData as any).private);
+        }
+      } catch {}
+    },
+    [
+      /* salaData may update elsewhere */
+    ]
+  );
 
   const toggleRoomPrivacy = useCallback(
     (nextValue: boolean) => {
@@ -1061,7 +1088,10 @@ export default function RoomPage() {
             {t('chat.sala_privada.titulo', 'Sala privada')}
           </h2>
           <p className="text-gray-600 dark:text-gray-300">
-            {t('chat.sala_privada.aviso', 'Esta sala é privada no momento. Tente novamente mais tarde ou peça acesso ao anfitrião.')}
+            {t(
+              'chat.sala_privada.aviso',
+              'Esta sala é privada no momento. Tente novamente mais tarde ou peça acesso ao anfitrião.'
+            )}
           </p>
           <Button onPress={() => router.push(`/${locale}/conversar`)} color="primary" variant="solid">
             {t('chat.interface.voltar_pagina_sala')}
@@ -1088,144 +1118,144 @@ export default function RoomPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
           <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-blue-500/30 to-transparent rounded-full"></div>
           <motion.h2
-        className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent relative z-10"
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.8, type: 'spring' }}
+            className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent relative z-10"
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8, type: 'spring' }}
           >
-        {t("chat.interface.bem_vindo_sala")}
+            {t('chat.interface.bem_vindo_sala')}
           </motion.h2>
           <motion.div
-        className="relative group"
-        initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
-        animate={{ opacity: 1, scale: 1, rotate: 0 }}
-        transition={{ delay: 0.5, duration: 0.8, type: 'spring', stiffness: 120 }}
+            className="relative group"
+            initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ delay: 0.5, duration: 0.8, type: 'spring', stiffness: 120 }}
           >
-        <div
-          className="absolute inset-0 rounded-full animate-pulse"
-          style={{ backgroundColor: `${avatarColor}15` }}
-        ></div>
-        <Image
-          src={avatarDetails.avatarURL || '/images/avatars/default.png'}
-          alt="Avatar Preview"
-          width={120}
-          height={120}
-          className="rounded-full border-4 p-3 shadow-2xl transition-all duration-500 dark:invert-0 invert group-hover:scale-110 group-hover:rotate-3 relative z-10"
-          style={{
-            borderColor: avatarColor,
-            backgroundColor: `${avatarColor}20`,
-            boxShadow: `0 10px 40px ${avatarColor}40, 0 0 0 1px ${avatarColor}20`,
-          }}
-        />
+            <div
+              className="absolute inset-0 rounded-full animate-pulse"
+              style={{ backgroundColor: `${avatarColor}15` }}
+            ></div>
+            <Image
+              src={avatarDetails.avatarURL || '/images/avatars/default.png'}
+              alt="Avatar Preview"
+              width={120}
+              height={120}
+              className="rounded-full border-4 p-3 shadow-2xl transition-all duration-500 dark:invert-0 invert group-hover:scale-110 group-hover:rotate-3 relative z-10"
+              style={{
+                borderColor: avatarColor,
+                backgroundColor: `${avatarColor}20`,
+                boxShadow: `0 10px 40px ${avatarColor}40, 0 0 0 1px ${avatarColor}20`,
+              }}
+            />
 
-        <motion.button
-          onClick={() => setColorModalOpenned(true)}
-          className="absolute inset-0 flex items-center justify-center rounded-full bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <div className="flex flex-col items-center text-white">
-            <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+            <motion.button
+              onClick={() => setColorModalOpenned(true)}
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-          />
-            </svg>
-            <span className="text-xs mt-1">{t('chat.interface.alterar_cor')}</span>
-          </div>
-        </motion.button>
+              <div className="flex flex-col items-center text-white">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                  />
+                </svg>
+                <span className="text-xs mt-1">{t('chat.interface.alterar_cor')}</span>
+              </div>
+            </motion.button>
           </motion.div>
           <motion.div
-        className="flex items-center gap-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
+            className="flex items-center gap-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
           >
-        <div
-          className="w-3 h-3 rounded-full border-2 border-white shadow-md"
-          style={{ backgroundColor: avatarColor }}
-        />
-        <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Selected color</span>
+            <div
+              className="w-3 h-3 rounded-full border-2 border-white shadow-md"
+              style={{ backgroundColor: avatarColor }}
+            />
+            <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Selected color</span>
           </motion.div>
           <motion.p
-        className="text-gray-600 dark:text-gray-300 font-medium text-base relative z-10"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
+            className="text-gray-600 dark:text-gray-300 font-medium text-base relative z-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
           >
-        {t('chat.interface.para_entrar_sala_insira_apelido')}
+            {t('chat.interface.para_entrar_sala_insira_apelido')}
           </motion.p>
           <motion.div
-        className="w-full relative"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8, type: 'spring' }}
+            className="w-full relative"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, type: 'spring' }}
           >
-        <input
-          type="text"
-          className="w-full px-4 py-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/40 dark:border-gray-600/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/90 dark:focus:bg-gray-800/90 transition-all duration-500 text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 text-base shadow-lg hover:shadow-xl"
-          placeholder="Your name"
-          value={userName}
-          onChange={handleNameInputChange}
-        />
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 pointer-events-none"></div>
+            <input
+              type="text"
+              className="w-full px-4 py-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/40 dark:border-gray-600/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-white/90 dark:focus:bg-gray-800/90 transition-all duration-500 text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 text-base shadow-lg hover:shadow-xl"
+              placeholder="Your name"
+              value={userName}
+              onChange={handleNameInputChange}
+            />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 pointer-events-none"></div>
           </motion.div>
           <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.9, type: 'spring' }}
-        className="w-full"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.9, type: 'spring' }}
+            className="w-full"
           >
-        <AvatarSelector
-          onAvatarSelect={(avatar, url) => setAvatarDetails({ avatarURL: url, avatarName: avatar })}
-          color={avatarColor}
-          getRandomAvatar={getRandomAvatar}
-        />
+            <AvatarSelector
+              onAvatarSelect={(avatar, url) => setAvatarDetails({ avatarURL: url, avatarName: avatar })}
+              color={avatarColor}
+              getRandomAvatar={getRandomAvatar}
+            />
           </motion.div>
           <ColorSelector
-        onSelectColor={handleSelectColor}
-        isOpen={isColorModalOpenned}
-        onModalClose={() => setColorModalOpenned(false)}
+            onSelectColor={handleSelectColor}
+            isOpen={isColorModalOpenned}
+            onModalClose={() => setColorModalOpenned(false)}
           />
           <motion.div
-        className="text-xs text-gray-500 dark:text-gray-400 space-y-2 bg-blue-50/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-3 border border-blue-200/30 dark:border-gray-700/30 relative z-10"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1.0, type: 'spring' }}
+            className="text-xs text-gray-500 dark:text-gray-400 space-y-2 bg-blue-50/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-3 border border-blue-200/30 dark:border-gray-700/30 relative z-10"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.0, type: 'spring' }}
           >
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-          <span>{t('chat.dicas.nao_se_preocupe_apelido')}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
-          <span>{t('chat.dicas.avatar_gerado_automaticamente')}</span>
-        </div>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+              <span>{t('chat.dicas.nao_se_preocupe_apelido')}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+              <span>{t('chat.dicas.avatar_gerado_automaticamente')}</span>
+            </div>
           </motion.div>
           <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: 1.1, type: 'spring', stiffness: 120 }}
-        className="w-full"
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 1.1, type: 'spring', stiffness: 120 }}
+            className="w-full"
           >
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button
-            onPress={() => connectToRoom(false)}
-            className="w-full bg-gradient-to-r from-blue-500 via-purple-600 to-blue-500 hover:from-blue-600 hover:via-purple-700 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-white/20 backdrop-blur-sm relative overflow-hidden group text-base"
-            size="md"
-          >
-            <span className="relative z-10">{t('chat.interface.entrar_sala')}</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          </Button>
-        </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                onPress={() => connectToRoom(false)}
+                className="w-full bg-gradient-to-r from-blue-500 via-purple-600 to-blue-500 hover:from-blue-600 hover:via-purple-700 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-white/20 backdrop-blur-sm relative overflow-hidden group text-base"
+                size="md"
+              >
+                <span className="relative z-10">{t('chat.interface.entrar_sala')}</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </Button>
+            </motion.div>
           </motion.div>
         </motion.div>
       </div>
@@ -1297,7 +1327,7 @@ export default function RoomPage() {
                 >
                   <div className="relative">
                     <h1 className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent pt-4">
-                     {t('chat.interface.voce_e_o_host')} <span className="text-white">👑</span>
+                      {t('chat.interface.voce_e_o_host')} <span className="text-white">👑</span>
                     </h1>
                   </div>
                   <h2 className="text-xl text-gray-700 dark:text-gray-300">{t('chat.compartilhar.descricao')}</h2>
@@ -1336,11 +1366,7 @@ export default function RoomPage() {
                         <span className="flex-1 min-w-0 block rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50 px-3 py-2 font-semibold text-blue-600 dark:text-blue-400 overflow-x-auto whitespace-nowrap">
                           {shareLink}
                         </span>
-                        <CopyButton
-                          copy={shareLink}
-                          text="Copy"
-                          sucessText='Copied!'
-                        />
+                        <CopyButton copy={shareLink} text="Copy" sucessText="Copied!" />
                       </div>
                       <div className="w-full flex flex-col items-center md:items-start gap-2">
                         <div className="p-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 border border-gray-200/60 dark:border-gray-700/60 shadow-lg w-full flex justify-center">
@@ -1407,156 +1433,31 @@ export default function RoomPage() {
             </ChatComponent.Settings>
           </ChatComponent.Header>{' '}
           <ChatComponent.Body className="flex-1 overflow-hidden bg-gradient-to-b from-white/30 to-gray-50/30 dark:from-gray-900/30 dark:to-gray-800/30">
-            <div className="relative h-full">
-              <MessageList
-                ref={messageListRef}
-                className={`messageList h-full overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 ${chatCompacto ? 'chat-compact' : ''}`}
-              >
-                {mensagens.map((message, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Message
-                      date={message.date}
-                      lingua={message.lingua}
-                      ownMessage={message.senderId == userData?.userToken}
-                      originalMessage={message.message}
-                      senderApelido={message.senderApelido}
-                      senderAvatar={message.senderAvatar}
-                      senderColor={message.senderColor}
-                      compact={chatCompacto}
-                      isAudio={message.isAudio}
-                    >
-                      {message.isAudio ? (
-                        <audio controls controlsList="nodownload" className="w-full rounded-lg">
-                          <source src={message.message} type="audio/webm" />
-                          Your browser does not support the audio element.
-                        </audio>
-                      ) : (
-                        message.messageTraduzido
-                      )}
-                    </Message>
-                  </motion.div>
-                ))}
-                {messageLoading && (
-                  <motion.div
-                    className="flex items-center justify-center p-4"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Spinner color="primary" size="lg" />
-                  </motion.div>
-                )}
-                <AnimatePresence>
-                  {usersTyping.map(
-                    ({ userToken, typing }) =>
-                      typing &&
-                      userToken !== userData?.userToken &&
-                      usersRoomData[userToken] && (
-                        <motion.div
-                          key={userToken}
-                          className="flex items-center justify-center gap-2 sm:gap-3 text-gray-500 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-2 sm:p-3 mx-2 sm:mx-4"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <Image
-                            src={usersRoomData[userToken].avatar}
-                            alt={usersRoomData[userToken].apelido}
-                            width={30}
-                            height={30}
-                            className="rounded-full border-2"
-                            style={{ borderColor: usersRoomData[userToken].color }}
-                          />{' '}
-                          <motion.span
-                            animate={{ opacity: [0.5, 1, 0.5] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                            className="text-xs sm:text-sm font-medium"
-                            style={{ color: usersRoomData[userToken].color }}
-                          >
-                            {usersRoomData[userToken].apelido} {t('chat.interface.esta_digitando')}...
-                          </motion.span>
-                        </motion.div>
-                      )
-                  )}
-                </AnimatePresence>
-              </MessageList>
-              {showGoToBottom && (
-                <button
-                  onClick={scrollToBottom}
-                  className="absolute right-4 bottom-20 sm:bottom-8 z-50 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg p-3 flex items-center gap-2 hover:scale-105 transition-all duration-300"
-                  style={{ boxShadow: '0 4px 24px 0 rgba(80,80,200,0.15)' }}
-                  aria-label="Ir para o final do chat"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                  <span className="hidden sm:inline text-xs font-semibold">{t('chat.interface.ir_para_o_final')}</span>
-                </button>
-              )}
-            </div>
+            <ChatBody
+              mensagens={mensagens}
+              messageLoading={messageLoading}
+              usersTyping={usersTyping}
+              usersRoomData={usersRoomData as any}
+              currentUserToken={userData?.userToken}
+              chatCompacto={chatCompacto}
+              t={(k: string) => t(k)}
+              showGoToBottom={showGoToBottom}
+              onGoToBottom={scrollToBottom}
+              messageListRef={messageListRef}
+            />
           </ChatComponent.Body>{' '}
           <ChatComponent.Footer className="flex items-center gap-2 sm:gap-3 border-t border-white/20 dark:border-gray-700/30 p-3 sm:p-6 bg-gradient-to-r from-white/60 to-gray-50/60 dark:from-gray-900/60 dark:to-gray-800/60 backdrop-blur-sm">
-            <div className="flex-1">
-              {' '}
-              <Textarea
-                label=""
-                placeholder={t('chat.interface.digite_mensagem')}
-                minRows={1}
-                maxRows={4}
-                classNames={{
-                  input: 'textarea-message p-2 sm:p-4 text-sm sm:text-base',
-                  inputWrapper:
-                    'bg-white/95 dark:bg-gray-700/95 backdrop-blur-sm border border-gray-200/60 dark:border-gray-600/60 hover:border-primary-500/60 dark:hover:border-primary-400/60 focus-within:border-primary-500 dark:focus-within:border-primary-400 transition-all duration-300 rounded-2xl shadow-lg hover:shadow-xl',
-                }}
-                onChange={handleTextAreaChange}
-                onKeyUp={handleTextAreaKeyUp}
-                onKeyDown={handleTextAreaKeyDown}
-                value={mensagem}
-                size="lg"
-              />
-            </div>
-            {/* Action slot: shows either Mic (when empty or recording) or Send (when has text) */}
-            {(() => {
-              const hasText = mensagem.trim().length > 0;
-              const showMic = isRecording || !hasText;
-              const showSend = !isRecording && hasText;
-              return (
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  {showMic ? (
-                    <Button
-                      isIconOnly
-                      onClick={recAudio}
-                      color={isRecording ? 'danger' : 'primary'}
-                      className={`${isRecording
-                          ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
-                          : 'bg-gradient-to-r from-primary-500 to-secondary-600 hover:from-primary-600 hover:to-secondary-700'
-                      } text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl w-12 h-12 sm:w-14 sm:h-14`}
-                      size="lg"
-                      aria-label={isRecording ? t('chat.audio.parar_gravacao') : t('chat.audio.iniciar_gravacao')}
-                    >
-                      <IoMicOutline className={`text-xl sm:text-2xl ${isRecording ? 'animate-pulse' : ''}`} />
-                    </Button>
-                  ) : showSend ? (
-                    <Button
-                      isIconOnly
-                      onClick={sendMessage}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl w-12 h-12 sm:w-14 sm:h-14"
-                      size="lg"
-                      aria-label={t('chat.interface.enviar')}
-                    >
-                      <IoIosSend className={'text-xl sm:text-2xl'} />
-                    </Button>
-                  ) : null}
-                </motion.div>
-              );
-            })()}
-            <EmojiPicker onEmojiSelect={handleEmojiSelect} className="" />
+            <Composer
+              value={mensagem}
+              placeholder={t('chat.interface.digite_mensagem')}
+              isRecording={isRecording}
+              onChange={handleTextAreaChange as any}
+              onKeyUp={handleTextAreaKeyUp as any}
+              onKeyDown={handleTextAreaKeyDown as any}
+              onRecord={recAudio}
+              onSend={sendMessage}
+              onEmojiSelect={handleEmojiSelect}
+            />
           </ChatComponent.Footer>
         </motion.section>{' '}
         {isSettingsOpen && (
@@ -1574,7 +1475,8 @@ export default function RoomPage() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className={`
           lg:relative lg:w-[400px] lg:flex lg:flex-col lg:h-full
-          ${isSettingsOpen
+          ${
+            isSettingsOpen
               ? 'fixed top-16 left-2 right-2 bottom-2 sm:top-20 sm:left-4 sm:right-4 sm:bottom-4 md:top-24 md:left-6 md:right-6 md:bottom-6 lg:inset-auto z-[60] lg:z-0 flex flex-col'
               : 'hidden lg:flex'
           }
@@ -1625,6 +1527,50 @@ export default function RoomPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                 >
+                  <div className="w-full">
+                    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 rounded-xl p-3 md:p-4 shadow-md">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            connectionStatus === 'connected'
+                              ? 'bg-green-500 animate-pulse'
+                              : connectionStatus === 'connecting'
+                                ? 'bg-yellow-500 animate-pulse'
+                                : connectionStatus === 'error'
+                                  ? 'bg-red-500'
+                                  : 'bg-gray-400'
+                          }`}
+                        ></div>
+                        <div className="flex-1">
+                          <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200">
+                            {t('chat.status_conexao.titulo')}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {connectionStatus === 'connected' && t('chat.status_conexao.conectado')}
+                            {connectionStatus === 'connecting' && t('chat.status_conexao.conectando')}
+                            {connectionStatus === 'error' && t('chat.status_conexao.erro')}
+                            {connectionStatus === 'disconnected' && t('chat.status_conexao.desconectado')}
+                          </p>
+                        </div>
+                        {(connectionStatus === 'error' || connectionStatus === 'disconnected') && (
+                          <Button
+                            size="sm"
+                            color="primary"
+                            variant="flat"
+                            onPress={forceReconnect}
+                            className="text-xs px-3 py-1 min-w-0"
+                          >
+                            {t('chat.botoes.reconectar')}
+                          </Button>
+                        )}
+                        {connectionStatus === 'connecting' && (
+                          <div className="text-xs text-gray-600 dark:text-gray-400 animate-pulse">
+                            {t('chat.status_conexao.conectando')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                   {isHost && (
                     <div className="w-full">
                       <Switch
@@ -1648,49 +1594,6 @@ export default function RoomPage() {
                       </Switch>
                     </div>
                   )}
-                  <div className="w-full">
-                    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 rounded-xl p-3 md:p-4 shadow-md">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-3 h-3 rounded-full ${connectionStatus === 'connected'
-                              ? 'bg-green-500 animate-pulse'
-                              : connectionStatus === 'connecting'
-                                ? 'bg-yellow-500 animate-pulse'
-                                : connectionStatus === 'error'
-                                  ? 'bg-red-500'
-                                  : 'bg-gray-400'
-                          }`}
-                        ></div>
-                        <div className="flex-1">
-                          <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200">
-                            {t('chat.status_conexao.titulo')}
-                          </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            {connectionStatus === 'connected' && t('chat.status_conexao.conectado')}
-                            {connectionStatus === 'connecting' && t('chat.status_conexao.conectando')}
-                            {connectionStatus === 'error' && t('chat.status_conexao.erro')}
-                            {connectionStatus === 'disconnected' && t('chat.status_conexao.desconectado')}
-                          </p>
-                        </div> 
-                        {(connectionStatus === 'error' || connectionStatus === 'disconnected') && (
-                          <Button
-                            size="sm"
-                            color="primary"
-                            variant="flat"
-                            onPress={forceReconnect}
-                            className="text-xs px-3 py-1 min-w-0"
-                          >
-                            {t('chat.botoes.reconectar')}
-                          </Button>
-                        )}
-                        {connectionStatus === 'connecting' && (
-                          <div className="text-xs text-gray-600 dark:text-gray-400 animate-pulse">
-                            {t('chat.status_conexao.conectando')}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
                   <div className="w-full">
                     <Switch
                       isSelected={chatCompacto}
@@ -1813,7 +1716,8 @@ export default function RoomPage() {
                                         setIsOpen(false);
                                         setLanguagesFilter('');
                                       }}
-                                      className={`block w-full px-4 py-3 hover:bg-blue-500/10 dark:hover:bg-blue-400/10 text-left transition-colors duration-200 ${index === selectedIndex
+                                      className={`block w-full px-4 py-3 hover:bg-blue-500/10 dark:hover:bg-blue-400/10 text-left transition-colors duration-200 ${
+                                        index === selectedIndex
                                           ? 'bg-blue-500/20 dark:bg-blue-400/20 text-blue-600 dark:text-blue-400'
                                           : 'text-gray-700 dark:text-gray-300'
                                       }`}
