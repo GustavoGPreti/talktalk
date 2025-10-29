@@ -138,7 +138,7 @@ export default function NavBar() {
                   <Link
                     href={`/locale/configuracoes`.replace('locale', i18n.language)}
                     rel="noopener noreferrer"
-                    aria-label="Configurações"
+                    aria-label={t('chat.interface.configuracoes')}
                     className="hidden sm:block p-1.5 rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                   >
                     <IoSettingsSharp size={18} />
@@ -146,7 +146,7 @@ export default function NavBar() {
                   {/* Mobile quick Settings */}
                   <Link
                     href={`/locale/configuracoes`.replace('locale', i18n.language)}
-                    aria-label="Configurações"
+                    aria-label={t('chat.interface.configuracoes')}
                     className="md:hidden p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                   >
                     <IoSettingsSharp size={18} />
@@ -191,7 +191,7 @@ export default function NavBar() {
                 className={`block px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800`}
                 onClick={() => setIsMenuOpen(false)}
               >
-                Configurações
+                {t('chat.interface.configuracoes')}
               </Link>
             </div>
           </div>

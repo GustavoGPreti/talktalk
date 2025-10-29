@@ -16,6 +16,7 @@ import {
 } from 'react-icons/fa';
 import { BsTranslate, BsLightningCharge, BsPeople, BsShield, BsGlobe2, BsRocket } from 'react-icons/bs';
 import { HiSparkles, HiChatBubbleLeftRight, HiGlobeAlt, HiUserGroup, HiCog6Tooth, HiMicrophone } from 'react-icons/hi2';
+import { MdComputer } from "react-icons/md";
 import Avatar from 'react-avatar';
 import { motion, useScroll } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +25,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import Timeline from '@/app/components/timeline/Timeline';
+import { image } from '@heroui/react';
 
 interface CardProps {
   nome: string;
@@ -111,14 +113,38 @@ export default function SobrePage() {
       date: t('evolucao.timeline.dezembro_2024.data'),
       title: t('evolucao.timeline.dezembro_2024.titulo'),
       description: t('evolucao.timeline.dezembro_2024.descricao'),
-      icon: <FaStar size={20} />,
+      icon: <MdComputer size={20} />,
       color: '#786FF2',
+      image: '/images/pictures/febicvirtual.png',
+      imageAlt: 'Classificação e apresentação na etapa virtual da FEBIC',
+    },
+    // NOVOS EVENTOS
+    {
+      date: t('evolucao.timeline.setembro_2025.data'),
+      title: t('evolucao.timeline.setembro_2025.titulo'),
+      description: t('evolucao.timeline.setembro_2025.descricao'),
+      icon: <FaGraduationCap size={20} />,
+      color: '#6FE3F2',
     },
     {
-      date: 'Indefinido',
-      title: t('evolucao.timeline.janeiro_2025.titulo'),
-      description: t('evolucao.timeline.janeiro_2025.descricao'),
+      date: t('evolucao.timeline.outubro_2025.data'),
+      title: t('evolucao.timeline.outubro_2025.titulo'),
+      description: t('evolucao.timeline.outubro_2025.descricao'),
+      icon: <BsPeople size={20} />,
+      color: '#A46FF2',
+    },
+    {
+      date: t('evolucao.timeline.novembro_2025.data'),
+      title: t('evolucao.timeline.novembro_2025.titulo'),
+      description: t('evolucao.timeline.novembro_2025.descricao'),
       icon: <HiSparkles size={20} />,
+      color: '#38A3F5',
+    },
+    {
+      date: t('evolucao.timeline.dezembro_2025.data'),
+      title: t('evolucao.timeline.dezembro_2025.titulo'),
+      description: t('evolucao.timeline.dezembro_2025.descricao'),
+      icon: <BsRocket size={20} />,
       color: '#6F90F2',
     },
   ];
@@ -162,17 +188,6 @@ export default function SobrePage() {
   ];
   const teamMembers = [
     {
-      nome: t('equipe.membros.gustavo.nome'),
-      srcImagem: '/images/pictures/imagemGustavo.png',
-      altImagem: 'Foto do Gustavo',
-      cargo: t('equipe.membros.gustavo.cargo'),
-      description: t('equipe.membros.gustavo.descricao'),
-      tags: [],
-      icon: [<FaGithub key="github" />, <FaLinkedin key="linkedin" />],
-      linkGithub: 'https://github.com/GustavoGPreti',
-      linkLinkedin: 'https://linkedin.com/in/gustavo-preti',
-    },
-    {
       nome: t('equipe.membros.christopher.nome'),
       srcImagem: '/images/pictures/imagemChristopher.png',
       altImagem: 'Foto do Christopher',
@@ -182,6 +197,17 @@ export default function SobrePage() {
       icon: [<FaGithub key="github" />, <FaLinkedin key="linkedin" />],
       linkGithub: 'https://github.com/christophergouveia',
       linkLinkedin: 'https://linkedin.com/in/christopher-oliveira',
+    },
+    {
+      nome: t('equipe.membros.gustavo.nome'),
+      srcImagem: '/images/pictures/imagemGustavo.png',
+      altImagem: 'Foto do Gustavo',
+      cargo: t('equipe.membros.gustavo.cargo'),
+      description: t('equipe.membros.gustavo.descricao'),
+      tags: [],
+      icon: [<FaGithub key="github" />, <FaLinkedin key="linkedin" />],
+      linkGithub: 'https://github.com/GustavoGPreti',
+      linkLinkedin: 'https://linkedin.com/in/gustavo-preti',
     },
     {
       nome: t('equipe.membros.kaike.nome'),

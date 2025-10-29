@@ -80,8 +80,16 @@ const UserSettingsPage = () => {
 
   const { fontSize, setFontSize } = useFontSize();
 
-  const saveUserSettings = useCallback((settings: any) => {
-    localStorage.setItem('talktalk_user_settings', JSON.stringify(settings));
+  const saveUserSettings = useCallback((partialSettings: any) => {
+    try {
+      const saved = localStorage.getItem('talktalk_user_settings');
+      const current = saved ? JSON.parse(saved) : {};
+      const merged = { ...current, ...partialSettings };
+      localStorage.setItem('talktalk_user_settings', JSON.stringify(merged));
+    } catch (e) {
+      // Fallback: if parsing fails, just write the partial to avoid losing user action
+      localStorage.setItem('talktalk_user_settings', JSON.stringify(partialSettings));
+    }
   }, []);
   const [linguaSelecionada, setLinguaSelecionada] = useState<{ label: string; value: string; flag: string }>({
     label: 'Português',
@@ -101,7 +109,18 @@ const UserSettingsPage = () => {
           settings.linguaSelecionada.flag !== linguaSelecionada.flag
         ) {
           setLinguaSelecionada(settings.linguaSelecionada);
+          // Sincroniza idioma preferido usado na seleção de vozes
+          if (settings.linguaSelecionada?.value) {
+            setPreferredLanguage(settings.linguaSelecionada.value);
+          }
         }
+      }
+      // Prefill dos dados de perfil previamente salvos
+      if (settings.userName) {
+        setUserName(settings.userName);
+      }
+      if (settings.userApelido) {
+        setUserApelido(settings.userApelido);
       }
       if (settings.avatarDetails) {
         setAvatarDetails(settings.avatarDetails);
@@ -109,10 +128,21 @@ const UserSettingsPage = () => {
       if (settings.avatarColor) {
         setAvatarColor(settings.avatarColor);
       }
+      // Fallback: se houver preferredLanguage salvo diretamente
+      if (!settings.linguaSelecionada && settings.preferredLanguage) {
+        setPreferredLanguage(settings.preferredLanguage);
+      }
     }
     isFirstLoad.current = false;
   }, [setLinguaSelecionada, linguaSelecionada.value, linguaSelecionada.label, linguaSelecionada.flag]);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  // Sincroniza o estado local do switch com o tema global atual
+  useEffect(() => {
+    if (theme?.resolvedTheme) {
+      setDarkMode(theme.resolvedTheme === 'dark');
+    }
+  }, [theme?.resolvedTheme]);
 
   useEffect(() => {
     const loadVoices = () => {
@@ -158,6 +188,8 @@ const UserSettingsPage = () => {
       value: languagesData[index].value,
       flag: languagesData[index].flag,
     });
+    // Atualiza idioma preferido para sincronizar seleção de voz e demais dependências
+    setPreferredLanguage(languagesData[index].value);
     saveUserSettings({
       linguaSelecionada: {
         label: languagesData[index].label,
@@ -239,16 +271,10 @@ const UserSettingsPage = () => {
   }, [avatarDetails.avatarURL, avatarColor, getRandomAvatar, linguaSelecionada, saveUserSettings]);
   const handleColorBlindChange = useCallback(
     (type: ColorBlindType) => {
+      // Apenas atualiza o tipo no contexto; o próprio ColorBlindContext já persiste mesclando
       setColorBlindType(type);
-
-      const settings = {
-        linguaSelecionada,
-        avatarDetails,
-        avatarColor,
-      };
-      localStorage.setItem('talktalk_user_settings', JSON.stringify(settings));
     },
-    [linguaSelecionada, avatarDetails, avatarColor, setColorBlindType]
+    [setColorBlindType]
   );
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-cyan-50/40 dark:from-[#0f0f0f] dark:via-[#1a1a2e] dark:to-[#16213e] relative overflow-hidden">
@@ -876,7 +902,12 @@ const UserSettingsPage = () => {
                         }
                         type="checkbox"
                         checked={darkMode}
-                        onChange={() => setDarkMode(!darkMode)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setDarkMode(checked);
+                          // Aplicar tema globalmente via next-themes
+                          theme.setTheme(checked ? 'dark' : 'light');
+                        }}
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-blue-500"></div>

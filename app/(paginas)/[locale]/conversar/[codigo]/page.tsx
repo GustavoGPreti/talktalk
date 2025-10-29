@@ -98,6 +98,28 @@ export default function RoomPage() {
   const audioChunksRef = useRef<Blob[]>([]);
 
   const router = useRouter();
+  // Prefill overlay with saved settings (avatar, color, nickname) when joining as guest
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('talktalk_user_settings');
+      if (!saved) return;
+      const s = JSON.parse(saved);
+      if (s?.avatarDetails?.avatarURL) {
+        setAvatarDetails({
+          avatarURL: s.avatarDetails.avatarURL,
+          avatarName: s.avatarDetails.avatarName || ''
+        });
+      }
+      if (s?.avatarColor) {
+        setAvatarColor(s.avatarColor);
+      }
+      if (s?.userApelido || s?.userName) {
+        setUserName((s.userApelido || s.userName || '').toString());
+      }
+    } catch (e) {
+      console.error('Failed to prefill user settings:', e);
+    }
+  }, []);
   const shareLink =
     (process.env.NEXT_PUBLIC_VERCEL_URL || (typeof window !== 'undefined' ? window.location.origin : '')) +
     '/conversar/' +
@@ -963,12 +985,18 @@ export default function RoomPage() {
     if (index !== -1) {
       setLinguaSelecionada(linguagens[index]);
       onLinguaChange(language);
-      const settings = {
-        linguaSelecionada: linguagens[index],
-        avatarDetails,
-        avatarColor,
-      };
-      localStorage.setItem('talktalk_user_settings', JSON.stringify(settings));
+      // Merge with existing settings to avoid overwriting unrelated fields
+      try {
+        const saved = localStorage.getItem('talktalk_user_settings');
+        const current = saved ? JSON.parse(saved) : {};
+        const merged = {
+          ...current,
+          linguaSelecionada: linguagens[index],
+        };
+        localStorage.setItem('talktalk_user_settings', JSON.stringify(merged));
+      } catch (e) {
+        localStorage.setItem('talktalk_user_settings', JSON.stringify({ linguaSelecionada: linguagens[index] }));
+      }
     }
   };
 
@@ -1049,6 +1077,17 @@ export default function RoomPage() {
       setKickTarget(null);
     }
   }, [kickTarget, socketClient, codigo]);
+
+  const leaveRoom = useCallback(() => {
+    try {
+      socketClient?.disconnect();
+    } catch {}
+    try {
+      document.cookie = 'talktalk_userdata=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie = 'talktalk_roomid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    } catch {}
+    router.push(`/${locale}/conversar`);
+  }, [socketClient, router, locale]);
   if (showErrorModal) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
@@ -1405,22 +1444,34 @@ export default function RoomPage() {
           <ChatComponent.Header className="flex w-full bg-gradient-to-r from-primary-500/10 to-secondary-500/10 backdrop-blur-sm border-b border-white/20 dark:border-gray-700/30">
             <ChatComponent.Settings className="flex justify-between w-full items-center gap-2 p-4">
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-                {' '}
-                <Button
-                  onPress={() => setHostModal(true)}
-                  className="bg-gradient-to-r from-primary-500 to-secondary-600 hover:from-primary-600 hover:to-secondary-700 text-white font-semibold px-3 sm:px-6 py-2 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 sm:h-5 sm:w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Button
+                    onPress={() => setHostModal(true)}
+                    className="bg-gradient-to-r from-primary-500 to-secondary-600 hover:from-primary-600 hover:to-secondary-700 text-white font-semibold px-3 sm:px-6 py-2 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
                   >
-                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
-                  </svg>
-                  <span className="hidden sm:inline">{t('chat.interface.compartilhar_sala')}</span>
-                  <span className="sm:hidden">{t('chat.interface.compartilhar_sala')}</span>
-                </Button>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 sm:h-5 sm:w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                    </svg>
+                    <span className="hidden sm:inline">{t('chat.interface.compartilhar_sala')}</span>
+                    <span className="sm:hidden">{t('chat.interface.compartilhar_sala')}</span>
+                  </Button>
+                  <Button
+                    onPress={leaveRoom}
+                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold px-3 sm:px-6 py-2 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M16 13v-2H7V8l-5 4 5 4v-3z" />
+                      <path d="M20 3h-8a2 2 0 00-2 2v4h2V5h8v14h-8v-4h-2v4a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2z" />
+                    </svg>
+                    <span className="hidden sm:inline">{t('chat.interface.sair_sala')}</span>
+                    <span className="sm:hidden">{t('chat.interface.sair_sala')}</span>
+                  </Button>
+                </div>
               </motion.div>
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
                 {' '}
@@ -1462,11 +1513,13 @@ export default function RoomPage() {
         </motion.section>{' '}
         {isSettingsOpen && (
           <motion.div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
+            onClick={() => setIsSettingsOpen(false)}
+            aria-hidden="true"
           />
         )}{' '}
         <motion.aside
@@ -1474,344 +1527,322 @@ export default function RoomPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           className={`
-          lg:relative lg:w-[400px] lg:flex lg:flex-col lg:h-full
+          lg:relative lg:flex lg:flex-col lg:h-full
           ${
             isSettingsOpen
-              ? 'fixed top-16 left-2 right-2 bottom-2 sm:top-20 sm:left-4 sm:right-4 sm:bottom-4 md:top-24 md:left-6 md:right-6 md:bottom-6 lg:inset-auto z-[60] lg:z-0 flex flex-col'
-              : 'hidden lg:flex'
+              ? 'fixed top-16 left-2 right-2 bottom-2 sm:top-20 sm:left-4 sm:right-4 sm:bottom-4 md:top-24 md:left-6 md:right-6 md:bottom-6 lg:inset-auto z-[60] lg:z-0 flex flex-col lg:w-[380px] xl:w-[420px]'
+              : 'hidden lg:flex lg:w-12'
           }
           bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 
-          overflow-hidden shadow-2xl transition-all duration-300 ease-in-out 
+          ring-1 ring-white/10 dark:ring-black/20 overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out 
           lg:bg-white/80 lg:dark:bg-gray-900/80 lg:backdrop-blur-md lg:shadow-2xl
           max-h-screen lg:max-h-none w-auto
         `}
         >
           <div className="h-full flex flex-col">
-            <div className="flex-none sticky top-0 z-10">
-              {' '}
-              <motion.h1
-                className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border-b border-white/20 dark:border-gray-700/30 p-3 md:p-4 font-bold flex items-center justify-between"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-xs md:text-sm lg:text-base">
-                  {t('chat.interface.configuracoes')}
-                </span>
-                <motion.button
-                  className="p-1.5 md:p-2 hover:bg-white/20 dark:hover:bg-gray-700/20 rounded-full transition-colors duration-300"
-                  onClick={() => setIsSettingsOpen(false)}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+            {/* Rail (collapsed) on large screens */}
+            {!isSettingsOpen && (
+              <div className="hidden lg:flex flex-col items-center justify-between py-4 h-full">
+                <button
+                  aria-label={t('chat.interface.configuracoes') as string}
+                  title={t('chat.interface.configuracoes') as string}
+                  className="mx-auto p-2 rounded-lg hover:bg-white/40 dark:hover:bg-gray-700/40 transition-colors"
+                  onClick={() => setIsSettingsOpen(true)}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 md:h-6 md:w-6 text-gray-600 dark:text-gray-300"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                  <IoSettingsSharp className="text-gray-700 dark:text-gray-300" size={20} />
+                </button>
+                <div className="flex-1 flex items-center">
+                  <span
+                    className="text-[10px] tracking-widest text-gray-500 dark:text-gray-400 rotate-180"
+                    style={{ writingMode: 'vertical-rl' }}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </motion.button>
-              </motion.h1>
-            </div>
+                    {t('chat.interface.configuracoes')}
+                  </span>
+                </div>
+              </div>
+            )}
 
-            <div className="flex-1 overflow-y-auto">
-              {' '}
-              <section className="padding-responsive space-y-3 md:space-y-4">
-                {' '}
-                <motion.div
-                  className="space-y-3 md:space-y-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <div className="w-full">
-                    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 rounded-xl p-3 md:p-4 shadow-md">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-3 h-3 rounded-full ${
-                            connectionStatus === 'connected'
-                              ? 'bg-green-500 animate-pulse'
-                              : connectionStatus === 'connecting'
-                                ? 'bg-yellow-500 animate-pulse'
-                                : connectionStatus === 'error'
-                                  ? 'bg-red-500'
-                                  : 'bg-gray-400'
-                          }`}
-                        ></div>
-                        <div className="flex-1">
-                          <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200">
-                            {t('chat.status_conexao.titulo')}
-                          </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            {connectionStatus === 'connected' && t('chat.status_conexao.conectado')}
-                            {connectionStatus === 'connecting' && t('chat.status_conexao.conectando')}
-                            {connectionStatus === 'error' && t('chat.status_conexao.erro')}
-                            {connectionStatus === 'disconnected' && t('chat.status_conexao.desconectado')}
-                          </p>
-                        </div>
-                        {(connectionStatus === 'error' || connectionStatus === 'disconnected') && (
-                          <Button
-                            size="sm"
-                            color="primary"
-                            variant="flat"
-                            onPress={forceReconnect}
-                            className="text-xs px-3 py-1 min-w-0"
-                          >
-                            {t('chat.botoes.reconectar')}
-                          </Button>
-                        )}
-                        {connectionStatus === 'connecting' && (
-                          <div className="text-xs text-gray-600 dark:text-gray-400 animate-pulse">
-                            {t('chat.status_conexao.conectando')}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  {isHost && (
-                    <div className="w-full">
-                      <Switch
-                        isSelected={isRoomPrivate}
-                        onValueChange={toggleRoomPrivacy}
-                        classNames={{
-                          base: 'inline-flex flex-row-reverse gap-2 md:gap-3 !w-full bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 items-center cursor-pointer p-3 md:p-4 border border-white/30 dark:border-gray-700/30 rounded-xl transition-all duration-200 shadow-md',
-                          wrapper: 'flex-none',
-                          endContent: 'flex-1 min-w-0',
-                          label: 'w-full',
-                        }}
-                      >
-                        <div className="flex flex-col gap-1 min-w-0">
-                          <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 truncate text-responsive">
-                            Sala privada
-                          </p>
-                          <p className="text-xs md:text-xs text-gray-600 dark:text-gray-400 line-clamp-2 text-responsive">
-                            Apenas convidados com link poderão entrar quando ativado.
-                          </p>
-                        </div>
-                      </Switch>
-                    </div>
-                  )}
-                  <div className="w-full">
-                    <Switch
-                      isSelected={chatCompacto}
-                      onValueChange={setChatCompacto}
-                      classNames={{
-                        base: 'inline-flex flex-row-reverse gap-2 md:gap-3 !w-full bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 items-center cursor-pointer p-3 md:p-4 border border-white/30 dark:border-gray-700/30 rounded-xl transition-all duration-200 shadow-md',
-                        wrapper: 'flex-none',
-                        endContent: 'flex-1 min-w-0',
-                        label: 'w-full',
-                      }}
-                    >
-                      {' '}
-                      <div className="flex flex-col gap-1 min-w-0">
-                        {' '}
-                        <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 truncate text-responsive">
-                          {t('chat.configuracoes.chat_compacto.titulo')}
-                        </p>
-                        <p className="text-xs md:text-xs text-gray-600 dark:text-gray-400 line-clamp-2 text-responsive">
-                          {t('chat.configuracoes.chat_compacto.descricao')}
-                        </p>
-                      </div>
-                    </Switch>
-                  </div>{' '}
-                  <motion.div
-                    className="w-full rounded-xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 p-3 md:p-4 shadow-md"
-                    initial={{ opacity: 0, y: 20 }}
+            {isSettingsOpen && (
+              <>
+                <div className="flex-none sticky top-0 z-10">
+                  <motion.h1
+                    className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border-b border-white/20 dark:border-gray-700/30 p-3 md:p-4 font-bold flex items-center justify-between"
+                    initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
+                    transition={{ delay: 0.3 }}
                   >
-                    {' '}
-                    <div className="flex flex-col gap-2 md:gap-3">
-                      <div className="flex flex-col gap-1">
-                        <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200">
-                          {t('chat.configuracoes.idioma.label')}
-                        </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          {t('chat.configuracoes.idioma.descricao_selecao')}
-                        </p>
-                      </div>
+                    <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-xs md:text-sm lg:text-base">
+                      {t('chat.interface.configuracoes')}
+                    </span>
+                    <motion.button
+                      className="p-1.5 md:p-2 hover:bg-white/20 dark:hover:bg-gray-700/20 rounded-full transition-colors duration-300"
+                      onClick={() => setIsSettingsOpen(false)}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 md:h-6 md:w-6 text-gray-600 dark:text-gray-300"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </motion.button>
+                  </motion.h1>
+                </div>
 
-                      <div className="relative">
-                        {' '}
-                        <motion.button
-                          onClick={() => setIsOpen(!isOpen)}
-                          className="relative z-10 w-full rounded-lg bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/40 dark:border-gray-600/40 px-2 md:px-3 py-2 md:py-2.5 text-left hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs md:text-sm flex gap-1 md:gap-2 items-center shadow-sm"
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
-                        >
-                          <CountryFlag flag={linguaSelecionada?.flag} />
-                          <span className="text-gray-800 dark:text-gray-200 truncate flex-1 text-xs md:text-sm">
-                            {linguaSelecionada?.label}
-                          </span>
-                          <svg
-                            className="w-3 h-3 md:w-4 md:h-4 text-gray-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </motion.button>
-                        <motion.div
-                          className={`absolute z-30 w-full mt-1 rounded-lg bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-white/40 dark:border-gray-700/40 shadow-2xl ${isOpen ? 'block' : 'hidden'}`}
-                          style={{ zIndex: 100 }}
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: isOpen ? 1 : 0, y: isOpen ? 0 : -10 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          {isOpen && (
-                            <div onClick={(e) => e.stopPropagation()}>
-                              {' '}
-                              <Input
-                                type="text"
-                                className="p-2 md:p-4"
-                                placeholder={t('chat.configuracoes.idioma.pesquisar')}
-                                onChange={(e) => setLanguagesFilter(e.target.value)}
-                                ref={languagesFilterRef}
-                                size="sm"
-                                classNames={{
-                                  inputWrapper:
-                                    'bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border-0 rounded-t-xl',
-                                  input: 'text-xs md:text-sm',
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'ArrowDown') {
-                                    const nextIndex = ((selectedIndex ?? 0) + 1) % filteredLanguages.length;
-                                    setSelectedIndex(nextIndex);
-                                    const list = document.querySelector('.custom-scrollbars');
-                                    const item = list?.children[nextIndex] as HTMLElement;
-                                    if (item) {
-                                      item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                                    }
-                                  } else if (e.key === 'ArrowUp') {
-                                    const prevIndex =
-                                      ((selectedIndex ?? 0) - 1 + filteredLanguages.length) % filteredLanguages.length;
-                                    setSelectedIndex(prevIndex);
-                                    const list = document.querySelector('.custom-scrollbars');
-                                    const item = list?.children[prevIndex] as HTMLElement;
-                                    if (item) {
-                                      item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                                    }
-                                  } else if (e.key === 'Enter' && selectedIndex !== undefined) {
-                                    handleLanguageChange(filteredLanguages[selectedIndex].value);
-                                    setIsOpen(false);
-                                    setLanguagesFilter('');
-                                  }
-                                }}
-                              />{' '}
-                              <ul className="py-1 h-[15rem] md:h-[17rem] overflow-y-scroll custom-scrollbars text-small">
-                                {filteredLanguages.map((idioma, index) => (
-                                  <motion.li
-                                    key={idioma.value}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                  >
-                                    <button
-                                      onClick={() => {
-                                        handleLanguageChange(idioma.value);
-                                        setIsOpen(false);
-                                        setLanguagesFilter('');
-                                      }}
-                                      className={`block w-full px-4 py-3 hover:bg-blue-500/10 dark:hover:bg-blue-400/10 text-left transition-colors duration-200 ${
-                                        index === selectedIndex
-                                          ? 'bg-blue-500/20 dark:bg-blue-400/20 text-blue-600 dark:text-blue-400'
-                                          : 'text-gray-700 dark:text-gray-300'
-                                      }`}
-                                    >
-                                      <div className="flex items-center flex-wrap gap-1">
-                                        <CountryFlag flag={idioma.flag} />
-                                        <span className="ml-2 font-medium text-sm md:text-base">{idioma.label}</span>
-                                        <p className="ml-2 text-tiny text-gray-500 dark:text-gray-400 hidden md:block">
-                                          {idioma.description}
-                                        </p>
-                                      </div>
-                                    </button>
-                                  </motion.li>
-                                ))}{' '}
-                              </ul>
-                            </div>
-                          )}
-                        </motion.div>{' '}
-                        {isOpen && (
-                          <div className="fixed inset-0" onClick={() => setIsOpen(false)} style={{ zIndex: 99 }} />
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              </section>
-            </div>
-
-            <motion.div
-              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm m-2 rounded-xl shadow-lg border border-white/20 dark:border-gray-700/30"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              <h2 className="text-sm md:text-medium bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm rounded-t-xl p-3 md:p-4 font-semibold flex items-center gap-2 border-b border-white/20 dark:border-gray-700/30">
-                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                <span className="text-gray-800 dark:text-gray-200">{t('chat.usuarios_online.titulo')}</span>
-              </h2>
-              <div className="flex flex-col gap-2 md:gap-3 p-3 md:p-4 max-h-60 md:max-h-80 overflow-y-auto">
-                {Object.entries(usersRoomData).length > 0 ? (
-                  Object.values(usersRoomData).map((user, index) => (
+                <div className="flex-1 overflow-y-auto">
+                  <section className="padding-responsive space-y-3 md:space-y-4">
                     <motion.div
-                      key={user.userToken}
-                      className="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-xl hover:bg-white/60 dark:hover:bg-gray-700/60 backdrop-blur-sm transition-all duration-200 border border-transparent hover:border-white/30 dark:hover:border-gray-600/30"
+                      className="space-y-3 md:space-y-4"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: 0.4 }}
                     >
-                      <div className="relative flex-shrink-0">
-                        <Image
-                          src={user.avatar}
-                          alt={user.apelido}
-                          width={50}
-                          height={50}
-                          className={`md:w-[60px] md:h-[60px] rounded-full border-2 p-1 md:p-2 bg-white dark:bg-transparent dark:invert-0 invert shadow-lg`}
-                          style={{ borderColor: user.color, backgroundColor: user.color }}
-                        />
+                      <div className="w-full">
+                        <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 rounded-xl p-3 md:p-4 shadow-md">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-3 h-3 rounded-full ${
+                                connectionStatus === 'connected'
+                                  ? 'bg-green-500 animate-pulse'
+                                  : connectionStatus === 'connecting'
+                                    ? 'bg-yellow-500 animate-pulse'
+                                    : connectionStatus === 'error'
+                                      ? 'bg-red-500'
+                                      : 'bg-gray-400'
+                              }`}
+                            ></div>
+                            <div className="flex-1">
+                              <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                {t('chat.status_conexao.titulo')}
+                              </p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">
+                                {connectionStatus === 'connected' && t('chat.status_conexao.conectado')}
+                                {connectionStatus === 'connecting' && t('chat.status_conexao.conectando')}
+                                {connectionStatus === 'error' && t('chat.status_conexao.erro')}
+                                {connectionStatus === 'disconnected' && t('chat.status_conexao.desconectado')}
+                              </p>
+                            </div>
+                            {(connectionStatus === 'error' || connectionStatus === 'disconnected') && (
+                              <Button
+                                size="sm"
+                                color="primary"
+                                variant="flat"
+                                onPress={forceReconnect}
+                                className="text-xs px-3 py-1 min-w-0"
+                              >
+                                {t('chat.botoes.reconectar')}
+                              </Button>
+                            )}
+                            {connectionStatus === 'connecting' && (
+                              <div className="text-xs text-gray-600 dark:text-gray-400 animate-pulse">
+                                {t('chat.status_conexao.conectando')}
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-col min-w-0 flex-1">
-                        <span
-                          className="text-sm md:text-medium font-medium flex items-center gap-1 text-gray-800 dark:text-gray-200 truncate"
-                          style={{ color: user.color }}
-                        >
-                          {user.apelido}
-                        </span>{' '}
-                        <span className="text-xs md:text-tiny text-gray-600 dark:text-gray-400">
-                          {user.host ? t('chat.usuarios_online.anfitriao') : t('chat.usuarios_online.convidado')}
-                        </span>
-                      </div>
-                      {isHost && user.userToken !== userData?.userToken && (
-                        <button
-                          onClick={() => requestKickUser(user.userToken, user.apelido)}
-                          className="ml-auto px-2 py-1 text-xs rounded-md bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400 transition-colors"
-                          aria-label={`Expulsar ${user.apelido}`}
-                        >
-                          Expulsar
-                        </button>
+                      {isHost && (
+                        <div className="w-full">
+                          <Switch
+                            isSelected={isRoomPrivate}
+                            onValueChange={toggleRoomPrivacy}
+                            classNames={{
+                              base: 'inline-flex flex-row-reverse gap-2 md:gap-3 !w-full bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 items-center cursor-pointer p-3 md:p-4 border border-white/30 dark:border-gray-700/30 rounded-xl transition-all duration-200 shadow-md',
+                              wrapper: 'flex-none',
+                              endContent: 'flex-1 min-w-0',
+                              label: 'w-full',
+                            }}
+                          >
+                            <div className="flex flex-col gap-1 min-w-0">
+                              <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 truncate text-responsive">
+                                Sala privada
+                              </p>
+                              <p className="text-xs md:text-xs text-gray-600 dark:text-gray-400 line-clamp-2 text-responsive">
+                                Apenas convidados com link poderão entrar quando ativado.
+                              </p>
+                            </div>
+                          </Switch>
+                        </div>
                       )}
+                      <div className="w-full">
+                        <Switch
+                          isSelected={chatCompacto}
+                          onValueChange={setChatCompacto}
+                          classNames={{
+                            base: 'inline-flex flex-row-reverse gap-2 md:gap-3 !w-full bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 items-center cursor-pointer p-3 md:p-4 border border-white/30 dark:border-gray-700/30 rounded-xl transition-all duration-200 shadow-md',
+                            wrapper: 'flex-none',
+                            endContent: 'flex-1 min-w-0',
+                            label: 'w-full',
+                          }}
+                        >
+                          <div className="flex flex-col gap-1 min-w-0">
+                            <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 truncate text-responsive">
+                              {t('chat.configuracoes.chat_compacto.titulo')}
+                            </p>
+                            <p className="text-xs md:text-xs text-gray-600 dark:text-gray-400 line-clamp-2 text-responsive">
+                              {t('chat.configuracoes.chat_compacto.descricao')}
+                            </p>
+                          </div>
+                        </Switch>
+                      </div>
+                      <motion.div
+                        className="w-full rounded-xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 p-3 md:p-4 shadow-md"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <div className="flex flex-col gap-2 md:gap-3">
+                          <div className="flex flex-col gap-1">
+                            <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200">
+                              {t('chat.configuracoes.idioma.label')}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              {t('chat.configuracoes.idioma.descricao_selecao')}
+                            </p>
+                          </div>
+
+                          <div className="relative">
+                            <motion.button
+                              onClick={() => setIsOpen(!isOpen)}
+                              className="relative z-10 w-full rounded-lg bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-white/40 dark:border-gray-600/40 px-2 md:px-3 py-2 md:py-2.5 text-left hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs md:text-sm flex gap-1 md:gap-2 items-center shadow-sm"
+                              whileHover={{ scale: 1.01 }}
+                              whileTap={{ scale: 0.99 }}
+                            >
+                              <CountryFlag flag={linguaSelecionada?.flag} />
+                              <span className="text-gray-800 dark:text-gray-200 truncate flex-1 text-xs md:text-sm">
+                                {linguaSelecionada?.label}
+                              </span>
+                              <svg className="w-3 h-3 md:w-4 md:h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </motion.button>
+                            <motion.div
+                              className={`absolute z-30 w-full mt-1 rounded-lg bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-white/40 dark:border-gray-700/40 shadow-2xl ${isOpen ? 'block' : 'hidden'}`}
+                              style={{ zIndex: 100 }}
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: isOpen ? 1 : 0, y: isOpen ? 0 : -10 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              {isOpen && (
+                                <div onClick={(e) => e.stopPropagation()}>
+                                  <Input
+                                    type="text"
+                                    className="p-2 md:p-4"
+                                    placeholder={t('chat.configuracoes.idioma.pesquisar')}
+                                    onChange={(e) => setLanguagesFilter(e.target.value)}
+                                    ref={languagesFilterRef}
+                                    size="sm"
+                                    classNames={{ inputWrapper: 'bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border-0 rounded-t-xl', input: 'text-xs md:text-sm' }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'ArrowDown') {
+                                        const nextIndex = ((selectedIndex ?? 0) + 1) % filteredLanguages.length;
+                                        setSelectedIndex(nextIndex);
+                                        const list = document.querySelector('.custom-scrollbars');
+                                        const item = list?.children[nextIndex] as HTMLElement;
+                                        if (item) item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                      } else if (e.key === 'ArrowUp') {
+                                        const prevIndex = ((selectedIndex ?? 0) - 1 + filteredLanguages.length) % filteredLanguages.length;
+                                        setSelectedIndex(prevIndex);
+                                        const list = document.querySelector('.custom-scrollbars');
+                                        const item = list?.children[prevIndex] as HTMLElement;
+                                        if (item) item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                      } else if (e.key === 'Enter' && selectedIndex !== undefined) {
+                                        handleLanguageChange(filteredLanguages[selectedIndex].value);
+                                        setIsOpen(false);
+                                        setLanguagesFilter('');
+                                      }
+                                    }}
+                                  />
+                                  <ul className="py-1 h-[15rem] md:h-[17rem] overflow-y-scroll custom-scrollbars text-small">
+                                    {filteredLanguages.map((idioma, index) => (
+                                      <motion.li key={idioma.value} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.05 }}>
+                                        <button
+                                          onClick={() => { handleLanguageChange(idioma.value); setIsOpen(false); setLanguagesFilter(''); }}
+                                          className={`block w-full px-4 py-3 hover:bg-blue-500/10 dark:hover:bg-blue-400/10 text-left transition-colors duration-200 ${index === selectedIndex ? 'bg-blue-500/20 dark:bg-blue-400/20 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}
+                                        >
+                                          <div className="flex items-center flex-wrap gap-1">
+                                            <CountryFlag flag={idioma.flag} />
+                                            <span className="ml-2 font-medium text-sm md:text-base">{idioma.label}</span>
+                                            <p className="ml-2 text-tiny text-gray-500 dark:text-gray-400 hidden md:block">{idioma.description}</p>
+                                          </div>
+                                        </button>
+                                      </motion.li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </motion.div>
+                            {isOpen && <div className="fixed inset-0" onClick={() => setIsOpen(false)} style={{ zIndex: 99 }} />}
+                          </div>
+                        </div>
+                      </motion.div>
                     </motion.div>
-                  ))
-                ) : (
-                  <motion.div
-                    className="text-center p-4 text-gray-500 dark:text-gray-400"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {t('chat.usuarios_online.nenhum_conectado')}
-                  </motion.div>
-                )}{' '}
-              </div>
-            </motion.div>
+                  </section>
+                </div>
+
+                <motion.div
+                  className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm m-2 rounded-xl shadow-lg border border-white/20 dark:border-gray-700/30"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <h2 className="text-sm md:text-medium bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm rounded-t-xl p-3 md:p-4 font-semibold flex items-center gap-2 border-b border-white/20 dark:border-gray-700/30">
+                    <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                    <span className="text-gray-800 dark:text-gray-200">{t('chat.usuarios_online.titulo')}</span>
+                  </h2>
+                  <div className="flex flex-col gap-2 md:gap-3 p-3 md:p-4 max-h-60 md:max-h-80 overflow-y-auto">
+                    {Object.entries(usersRoomData).length > 0 ? (
+                      Object.values(usersRoomData).map((user, index) => (
+                        <motion.div
+                          key={user.userToken}
+                          className="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-xl hover:bg-white/60 dark:hover:bg-gray-700/60 backdrop-blur-sm transition-all duration-200 border border-transparent hover:border-white/30 dark:hover:border-gray-600/30"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          <div className="relative flex-shrink-0">
+                            <Image src={user.avatar} alt={user.apelido} width={50} height={50} className={`md:w-[60px] md:h-[60px] rounded-full border-2 p-1 md:p-2 bg-white dark:bg-transparent dark:invert-0 invert shadow-lg`} style={{ borderColor: user.color, backgroundColor: user.color }} />
+                          </div>
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className="text-sm md:text-medium font-medium flex items-center gap-1 text-gray-800 dark:text-gray-200 truncate" style={{ color: user.color }}>
+                              {user.apelido}
+                            </span>
+                            <span className="text-xs md:text-tiny text-gray-600 dark:text-gray-400">{user.host ? t('chat.usuarios_online.anfitriao') : t('chat.usuarios_online.convidado')}</span>
+                          </div>
+                          {isHost && user.userToken !== userData?.userToken && (
+                            <button onClick={() => requestKickUser(user.userToken, user.apelido)} className="ml-auto px-2 py-1 text-xs rounded-md bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400 transition-colors" aria-label={`Expulsar ${user.apelido}`}>
+                              Expulsar
+                            </button>
+                          )}
+                        </motion.div>
+                      ))
+                    ) : (
+                      <motion.div className="text-center p-4 text-gray-500 dark:text-gray-400" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                        {t('chat.usuarios_online.nenhum_conectado')}
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
+                
+              </>
+            )}
           </div>
         </motion.aside>
+        {/* Floating corner toggle on mobile when settings are closed */}
+        {!isSettingsOpen && (
+          <button
+            aria-label={t('chat.interface.configuracoes') as string}
+            title={t('chat.interface.configuracoes') as string}
+            className="lg:hidden fixed bottom-4 right-4 z-40 p-3 rounded-full shadow-lg bg-white/90 dark:bg-gray-900/90 border border-white/40 dark:border-gray-700/40 text-gray-700 dark:text-gray-200 hover:scale-105 transition-transform"
+            onClick={() => setIsSettingsOpen(true)}
+          >
+            <IoSettingsSharp size={22} />
+          </button>
+        )}
       </div>
     </div>
   );

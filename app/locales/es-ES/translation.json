@@ -178,6 +178,26 @@
           "data": "Enero 2025",
           "titulo": "Lanzamiento oficial",
           "descricao": "TalkTalk se pone a disposición del público, marcando el inicio de una nueva era en la comunicación global inclusiva."
+        },
+        "setembro_2025": {
+          "data": "Septiembre 2025",
+          "titulo": "FEBIC - etapa presencial (Joinville-SC)",
+          "descricao": "Presentación en la etapa presencial y final de la FEBIC, realizada en Joinville-SC. Una experiencia memorable, con intercambio de conocimientos y reconocimiento nacional del proyecto."
+        },
+        "outubro_2025": {
+          "data": "Octubre 2025",
+          "titulo": "Presentación en MOCIU (1ª edición)",
+          "descricao": "Participación en la primera edición de MOCIU, compartiendo aprendizajes y demostrando el impacto de TalkTalk en la comunicación inclusiva."
+        },
+        "novembro_2025": {
+          "data": "Noviembre 2025",
+          "titulo": "Presentación en la banca final del proyecto",
+          "descricao": ""
+        },
+        "dezembro_2025": {
+          "data": "Diciembre 2025",
+          "titulo": "Lanzamiento final",
+          "descricao": "Concretización del sueño: lanzamiento final de TalkTalk, llevando una herramienta madura, inclusiva y accesible al mundo."
         }
       }
     },
@@ -296,8 +316,15 @@
         "botao_fechar": "Cerrar selector de emojis",
         "adicionar_emoji": "Añadir emoji al mensaje"
       },
+        "composer": {
+          "parar_gravacao": "Detener grabación",
+          "iniciar_gravacao": "Iniciar grabación",
+          "enviar": "Enviar"
+        },
       "sala_indisponivel": "Sala no disponible o error desconocido",
       "voltar_pagina_sala": "Volver a la página de sala",
+      "sair_sala": "Salir de la sala",
+      "voce_foi_expulso": "Has sido expulsado de la sala.",
       "usuario_ja_na_sala": "¡Ya estás en esta sala en otro dispositivo!",
       "para_entrar_saia_outros": "Para entrar en la sala, debes salir de otros dispositivos.",
       "usuario_desconectado": "usuario desconectado",
@@ -463,8 +490,25 @@
             },
             "ishihara": {
               "titulo": "Prueba de Ishihara simplificada",
-              "descricao": "Si puedes ver claramente los números arriba, las configuraciones están ayudando en tu percepción de colores.",
-              "numeros": "Los números deben ser visibles como \"6\", \"8\" y \"5\"."
+              "descricao": "Esta es una prueba interactiva inspirada en las láminas de Ishihara. Observa cada lámina e ingresa el número que ves.",
+              "numeros": "Los números son visibles y varían entre 1 y 2 dígitos.",
+              "iniciar": "Iniciar prueba",
+              "progresso": "{{atual}} de {{total}}",
+              "digite_numero": "Ingresa el número que ves:",
+              "nao_vejo": "No veo número",
+              "anterior": "Anterior",
+              "proximo": "Siguiente",
+              "finalizar": "Finalizar",
+              "aumentar_contraste": "Aumentar contraste",
+              "resultado": {
+                "titulo": "Resultado de la prueba",
+                "normal": "Sin indicios fuertes de deficiencia de color.",
+                "rg_sugestao": "Se identificaron dificultades en láminas rojo–verde. Puedes probar aplicar una corrección para deuteranomalía/protanomalía.",
+                "by_sugestao": "Se identificaron dificultades en láminas azul–amarillo. Puedes probar aplicar una corrección para tritanomalía.",
+                "acromatopsia": "Dificultad general detectada incluyendo la lámina de control. Puede indicar acromatopsia (visión en blanco y negro).",
+                "aplicar_filtro": "Aplicar corrección sugerida",
+                "reiniciar": "Repetir prueba"
+              }
             },
             "modo_ativo": "Modo {tipo} activo"
           },
@@ -526,7 +570,8 @@
       "anfitriao": "Anfitrión",
       "convidado": "Invitado",
       "nenhum_usuario": "Ningún usuario en línea",
-      "nenhum_conectado": "Ningún usuario conectado"
+      "nenhum_conectado": "Ningún usuario conectado",
+      "expulsar": "Expulsar"
     },
     "compartilhar": {
       "titulo": "Compartir sala",

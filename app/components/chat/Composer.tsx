@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { IoMicOutline } from "react-icons/io5";
 import { IoIosSend } from "react-icons/io";
 import EmojiPicker from "./EmojiPicker";
+import { useTranslation } from "react-i18next";
 
 export interface ComposerProps {
   value: string;
@@ -30,6 +31,7 @@ function ComposerBase({
   onSend,
   onEmojiSelect,
 }: ComposerProps) {
+  const { t } = useTranslation();
   const classNames = useMemo(
     () => ({
       input: "textarea-message p-2 sm:p-4 text-sm sm:text-base",
@@ -71,7 +73,7 @@ function ComposerBase({
             color={isRecording ? "danger" : "primary"}
             className={`${micClass} text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl w-12 h-12 sm:w-14 sm:h-14`}
             size="lg"
-            aria-label={isRecording ? "Parar gravação" : "Iniciar gravação"}
+            aria-label={isRecording ? t('chat.interface.composer.parar_gravacao') : t('chat.interface.composer.iniciar_gravacao')}
           >
             <IoMicOutline className={`text-xl sm:text-2xl ${isRecording ? "animate-pulse" : ""}`} />
           </Button>
@@ -81,7 +83,7 @@ function ComposerBase({
             onClick={onSend}
             className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl w-12 h-12 sm:w-14 sm:h-14"
             size="lg"
-            aria-label="Enviar"
+            aria-label={t('chat.interface.composer.enviar')}
           >
             <IoIosSend className={"text-xl sm:text-2xl"} />
           </Button>

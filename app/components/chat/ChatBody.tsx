@@ -72,7 +72,7 @@ function ChatBodyBase({
               {message.isAudio ? (
                 <audio controls controlsList="nodownload" className="w-full rounded-lg">
                   <source src={message.message} type="audio/webm" />
-                  Your browser does not support the audio element.
+                  {t('chat.interface.audio_nao_suportado')}
                 </audio>
               ) : (
                 message.messageTraduzido
@@ -130,12 +130,12 @@ function ChatBodyBase({
           onClick={onGoToBottom}
           className="absolute right-4 bottom-20 sm:bottom-8 z-50 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg p-3 flex items-center gap-2 hover:scale-105 transition-all duration-300"
           style={{ boxShadow: '0 4px 24px 0 rgba(80,80,200,0.15)' }}
-          aria-label="Ir para o final do chat"
+          aria-label={t('chat.interface.ir_para_o_final')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
-          <span className="hidden sm:inline text-xs font-semibold">Ir para o final</span>
+          <span className="hidden sm:inline text-xs font-semibold">{t('chat.interface.ir_para_o_final')}</span>
         </button>
       )}
     </div>

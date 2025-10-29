@@ -53,7 +53,7 @@ function UsersOnline({ users, isHost = false, selfToken, onKick }: UsersOnlinePr
                   onClick={() => onKick(user.userToken, user.apelido)}
                   className="ml-auto px-2 py-1 text-xs rounded-md bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400 transition-colors"
                 >
-                  Expulsar
+                  {t('chat.usuarios_online.expulsar')}
                 </button>
               )}
             </div>

@@ -178,6 +178,26 @@
           "data": "January 2025",
           "titulo": "Official launch",
           "descricao": "TalkTalk is made available to the public, marking the beginning of a new era in inclusive global communication."
+        },
+        "setembro_2025": {
+          "data": "September 2025",
+          "titulo": "FEBIC - in-person stage (Joinville-SC)",
+          "descricao": "Presentation at the in-person and final stage of FEBIC, held in Joinville-SC. A remarkable experience with knowledge exchange and national recognition of the project."
+        },
+        "outubro_2025": {
+          "data": "October 2025",
+          "titulo": "Presentation at MOCIU (1st edition)",
+          "descricao": "Participation in the first edition of MOCIU, sharing learnings and demonstrating TalkTalk's impact on inclusive communication."
+        },
+        "novembro_2025": {
+          "data": "November 2025",
+          "titulo": "Final project board presentation",
+          "descricao": ""
+        },
+        "dezembro_2025": {
+          "data": "December 2025",
+          "titulo": "Final launch",
+          "descricao": "Dream fulfilled: the final launch of TalkTalk, bringing a mature, inclusive, and accessible tool to the world."
         }
       }
     },
@@ -303,8 +323,15 @@
         "botao_fechar": "Close emoji picker",
         "adicionar_emoji": "Add emoji to message"
       },
+      "composer": {
+        "parar_gravacao": "Stop recording",
+        "iniciar_gravacao": "Start recording",
+        "enviar": "Send"
+      },
       "sala_indisponivel": "Room unavailable or unknown error",
       "voltar_pagina_sala": "Back to room page",
+      "sair_sala": "Leave room",
+      "voce_foi_expulso": "You were kicked from the room.",
       "usuario_ja_na_sala": "You are already in this room on another device!",
       "para_entrar_saia_outros": "To enter the room, you must exit from other devices.",
       "usuario_desconectado": "user disconnected",
@@ -470,8 +497,25 @@
             },
             "ishihara": {
               "titulo": "Simplified Ishihara test",
-              "descricao": "If you can clearly see the numbers above, the settings are helping your color perception.",
-              "numeros": "The numbers should be visible as \"6\", \"8\" and \"5\"."
+              "descricao": "This is an interactive test inspired by Ishihara plates. Look at each plate and enter the number you see.",
+              "numeros": "Numbers are visible and vary between 1 and 2 digits.",
+              "iniciar": "Start test",
+              "progresso": "{{atual}} of {{total}}",
+              "digite_numero": "Enter the number you see:",
+              "nao_vejo": "I can't see a number",
+              "anterior": "Previous",
+              "proximo": "Next",
+              "finalizar": "Finish",
+              "aumentar_contraste": "Increase contrast",
+              "resultado": {
+                "titulo": "Test result",
+                "normal": "No strong signs of color deficiency.",
+                "rg_sugestao": "Difficulties identified on red–green plates. You can try applying a correction for deuteranomaly/protanomaly.",
+                "by_sugestao": "Difficulties identified on blue–yellow plates. You can try applying a correction for tritanomaly.",
+                "acromatopsia": "General difficulty detected including the control plate. This may indicate achromatopsia (black-and-white vision).",
+                "aplicar_filtro": "Apply suggested correction",
+                "reiniciar": "Retake test"
+              }
             },
             "modo_ativo": "{tipo} mode active"
           },
@@ -533,7 +577,8 @@
       "anfitriao": "Host",
       "convidado": "Guest",
       "nenhum_usuario": "No users online",
-      "nenhum_conectado": "No users connected"
+      "nenhum_conectado": "No users connected",
+      "expulsar": "Kick"
     },
     "compartilhar": {
       "titulo": "Share room",

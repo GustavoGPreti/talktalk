@@ -162,13 +162,33 @@
         },
         "dezembro_2024": {
           "data": "Junho 2025",
-          "titulo": "Classificação na etapa virtual da FEBIC",
-          "descricao": "O projeto TalkTalk foi classificado para a etapa virtual da FEBIC (Feira Brasileira de Iniciação Científica), reconhecendo seu potencial inovador na área de tecnologias educacionais. Essa conquista destaca a relevância do sistema no cenário nacional e incentiva a continuidade do desenvolvimento e da pesquisa."
+          "titulo": "Classificação e apresentação na etapa virtual da FEBIC",
+          "descricao": "O projeto TalkTalk foi classificado e apresentado na etapa virtual da FEBIC (Feira Brasileira de Iniciação Científica), reconhecendo seu potencial inovador na área de tecnologias educacionais. Essa conquista destaca a relevância do sistema no cenário nacional e incentiva a continuidade do desenvolvimento e da pesquisa."
         },
         "janeiro_2025": {
           "data": "Janeiro 2025",
           "titulo": "Lançamento oficial",
           "descricao": "O TalkTalk é disponibilizado ao público, marcando o início de uma nova era na comunicação global inclusiva."
+        },
+        "setembro_2025": {
+          "data": "Setembro 2025",
+          "titulo": "FEBIC - etapa presencial (Joinville-SC)",
+          "descricao": "Apresentação na etapa presencial e final da FEBIC, realizada em Joinville-SC. Uma experiência marcante, com troca de conhecimentos e reconhecimento do projeto no cenário nacional."
+        },
+        "outubro_2025": {
+          "data": "Outubro 2025",
+          "titulo": "Apresentação no MOCIU (1ª edição)",
+          "descricao": "Participação na primeira edição do MOCIU, compartilhando aprendizados e demonstrando o impacto do TalkTalk na comunicação inclusiva."
+        },
+        "novembro_2025": {
+          "data": "Novembro 2025",
+          "titulo": "Banca final do projeto",
+          "descricao": "a ser finalizado"
+        },
+        "dezembro_2025": {
+          "data": "Dezembro 2025",
+          "titulo": "Lançamento final",
+          "descricao": "Concretização do sonho: lançamento final do TalkTalk, levando uma ferramenta madura, inclusiva e acessível para o mundo."
         }
       }
     },
@@ -288,8 +308,15 @@
         "botao_fechar": "Fechar seletor de emojis",
         "adicionar_emoji": "Adicionar emoji à mensagem"
       },
+      "composer": {
+        "parar_gravacao": "Parar gravação",
+        "iniciar_gravacao": "Iniciar gravação",
+        "enviar": "Enviar"
+      },
       "sala_indisponivel": "Sala indisponível ou erro desconhecido",
       "voltar_pagina_sala": "Voltar para a página de sala",
+      "sair_sala": "Sair da sala",
+      "voce_foi_expulso": "Você foi expulso da sala.",
       "usuario_ja_na_sala": "Você já está nesta sala em outro dispositivo!",
       "para_entrar_saia_outros": "Para entrar na sala, você deve sair de outros dispositivos.",
       "usuario_desconectado": "usuário desconectado",
@@ -455,8 +482,25 @@
             },
             "ishihara": {
               "titulo": "Teste de Ishihara simplificado",
-              "descricao": "Se você consegue ver claramente os números acima, as configurações estão ajudando na sua percepção das cores.",
-              "numeros": "Os números devem ser visíveis como \"6\", \"8\" e \"5\"."
+              "descricao": "Este é um teste interativo inspirado nas placas de Ishihara. Observe cada placa e informe o número que você enxerga.",
+              "numeros": "Os números devem ser visíveis e variam entre 1 e 2 dígitos.",
+              "iniciar": "Iniciar teste",
+              "progresso": "{{atual}} de {{total}}",
+              "digite_numero": "Digite o número que você vê:",
+              "nao_vejo": "Não vejo número",
+              "anterior": "Anterior",
+              "proximo": "Próximo",
+              "finalizar": "Finalizar",
+              "aumentar_contraste": "Aumentar contraste",
+              "resultado": {
+                "titulo": "Resultado do teste",
+                "normal": "Sem indícios fortes de deficiência de cores.",
+                "rg_sugestao": "Foram identificadas dificuldades em placas vermelho–verde. Você pode experimentar aplicar uma correção para deuteranomalia/protanomalia.",
+                "by_sugestao": "Foram identificadas dificuldades em placas azul–amarelo. Você pode experimentar aplicar uma correção para tritanomalia.",
+                "acromatopsia": "Dificuldade geral detectada inclusive em placa de controle. Pode indicar acromatopsia (visão em preto e branco).",
+                "aplicar_filtro": "Aplicar correção sugerida",
+                "reiniciar": "Refazer teste"
+              }
             },
             "modo_ativo": "Modo {tipo} ativo"
           },
@@ -518,7 +562,8 @@
       "anfitriao": "Anfitrião",
       "convidado": "Convidado",
       "nenhum_usuario": "Nenhum usuário online",
-      "nenhum_conectado": "Nenhum usuário conectado"
+      "nenhum_conectado": "Nenhum usuário conectado",
+      "expulsar": "Expulsar"
     },
     "compartilhar": {
       "titulo": "Compartilhar sala",

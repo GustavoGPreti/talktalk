@@ -5,28 +5,28 @@ import { useTranslation } from 'react-i18next';
 
 export const colors = [
   // TalkTalk Palette
-  { name: 'intense_light_blue', hex: '#38A3F5' },
-  { name: 'bluish_purple', hex: '#786FF2' },
-  { name: 'medium_blue', hex: '#6F90F2' },
-  { name: 'pool_blue', hex: '#6FE3F2' },
-  { name: 'vibrant_lilac', hex: '#A46FF2' },
-  { name: 'very_light_blue', hex: '#BFCCF2' },
+  { name: 'azul_claro', hex: '#38A3F5' },
+  { name: 'roxo', hex: '#786FF2' },
+  { name: 'ciano', hex: '#6F90F2' },
+  { name: 'violeta', hex: '#6FE3F2' },
+  { name: 'lavanda', hex: '#A46FF2' },
+  { name: 'rosa_pastel', hex: '#BFCCF2' },
   
   // Complementary Colors
-  { name: 'tangerine', hex: '#FFDDC1' },
+  { name: 'tangerina', hex: '#FFDDC1' },
   { name: 'coral', hex: '#FFABAB' },
-  { name: 'peach', hex: '#FFC3A0' },
-  { name: 'pink', hex: '#FF677D' },
-  { name: 'pinkish_gray', hex: '#D4A5A5' },
-  { name: 'violet', hex: '#392F5A' },
-  { name: 'orange', hex: '#F8B400' },
+  { name: 'pessego', hex: '#FFC3A0' },
+  { name: 'rosa', hex: '#FF677D' },
+  { name: 'cinza_rosa', hex: '#D4A5A5' },
+  { name: 'violeta', hex: '#392F5A' },
+  { name: 'laranja', hex: '#F8B400' },
   { name: 'fuchsia', hex: '#FF61A6' },
-  { name: 'purple', hex: '#6A0572' },
-  { name: 'lavender', hex: '#D5AAFF' },
-  { name: 'light_green', hex: '#B9FBC0' },
-  { name: 'cyan', hex: '#A0E7E5' },
-  { name: 'brown', hex: '#786C3B' },
-  { name: 'mint_green', hex: '#B9EBC1' },
+  { name: 'roxo', hex: '#6A0572' },
+  { name: 'lavanda', hex: '#D5AAFF' },
+  { name: 'verde_claro', hex: '#B9FBC0' },
+  { name: 'ciano', hex: '#A0E7E5' },
+  { name: 'marrom', hex: '#786C3B' },
+  { name: 'verde_menta', hex: '#B9EBC1' },
 ];
 
 interface ColorSelectorI {
