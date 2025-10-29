@@ -785,6 +785,16 @@ export default function RoomPage() {
     (color: string) => {
       setAvatarColor(color);
       setColorModalOpenned(false);
+      // Persist selected color to localStorage so it can be reused later
+      try {
+        const saved = localStorage.getItem('talktalk_user_settings');
+        const current = saved ? JSON.parse(saved) : {};
+        const merged = { ...current, avatarColor: color };
+        localStorage.setItem('talktalk_user_settings', JSON.stringify(merged));
+      } catch (e) {
+        // Fallback write
+        localStorage.setItem('talktalk_user_settings', JSON.stringify({ avatarColor: color }));
+      }
     },
     [setAvatarColor]
   );
@@ -1254,7 +1264,19 @@ export default function RoomPage() {
             className="w-full"
           >
             <AvatarSelector
-              onAvatarSelect={(avatar, url) => setAvatarDetails({ avatarURL: url, avatarName: avatar })}
+              onAvatarSelect={(avatar, url) => {
+                const next = { avatarURL: url, avatarName: avatar };
+                setAvatarDetails(next);
+                // Persist avatar choice (and keep current color) for reuse later
+                try {
+                  const saved = localStorage.getItem('talktalk_user_settings');
+                  const current = saved ? JSON.parse(saved) : {};
+                  const merged = { ...current, avatarDetails: next, avatarColor };
+                  localStorage.setItem('talktalk_user_settings', JSON.stringify(merged));
+                } catch (e) {
+                  localStorage.setItem('talktalk_user_settings', JSON.stringify({ avatarDetails: next, avatarColor }));
+                }
+              }}
               color={avatarColor}
               getRandomAvatar={getRandomAvatar}
             />
