@@ -14,6 +14,7 @@ import { ColorBlindProvider } from './contexts/ColorBlindContext';
 import { FontSizeProvider } from './contexts/FontSizeContext';
 import ColorBlindFilters from './components/global/ColorBlindFilters';
 
+// import NextNProgress from 'nextjs-progressbar';
 import i18n from '../i18n';
 
 export default function Providers({ children }: { children: ReactNode }) {
@@ -46,6 +47,8 @@ export default function Providers({ children }: { children: ReactNode }) {
       <div>
         <VLibras forceOnload />
       </div>
+
+      {/*<NextNProgress color="#38A3F5" startPosition={0.3} stopDelayMs={200} height={3} showOnShallow />*/}
       <HeroUIProvider>
         <CookiesProvider>
           {' '}

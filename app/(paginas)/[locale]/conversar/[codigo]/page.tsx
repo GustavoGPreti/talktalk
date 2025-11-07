@@ -1,9 +1,6 @@
 'use client';
 
 import ChatComponent from '@/app/components/chat/Chat.tsx';
-import Message from '@/app/components/chat/Message.tsx';
-import MessageList from '@/app/components/chat/MessageList.tsx';
-import EmojiPicker from '@/app/components/chat/EmojiPicker.tsx';
 import ChatBody from '@/app/components/chat/ChatBody';
 import Composer from '@/app/components/chat/Composer';
 import { CountryFlag } from '@/app/components/countryFlags.tsx';
@@ -31,7 +28,7 @@ import { AvatarSelector } from '@/app/components/functionals/AvatarSelector';
 import ColorSelector from '@/app/components/functionals/ColorsSelector';
 import { UserData } from '@/app/types/chat';
 import { useRouter, useParams } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cleanMessage } from '../../../../utils/formatters/cleanMessage';
 import LanguageDetector from '../../../../components/functionals/LanguageDetector';
 import { toast } from 'react-toastify';
@@ -107,7 +104,7 @@ export default function RoomPage() {
       if (s?.avatarDetails?.avatarURL) {
         setAvatarDetails({
           avatarURL: s.avatarDetails.avatarURL,
-          avatarName: s.avatarDetails.avatarName || ''
+          avatarName: s.avatarDetails.avatarName || '',
         });
       }
       if (s?.avatarColor) {
@@ -1431,6 +1428,7 @@ export default function RoomPage() {
                       </div>
                       <div className="w-full flex flex-col items-center md:items-start gap-2">
                         <div className="p-3 rounded-2xl bg-white/80 dark:bg-gray-800/80 border border-gray-200/60 dark:border-gray-700/60 shadow-lg w-full flex justify-center">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareLink)}`}
                             alt="QR Code"
@@ -1486,7 +1484,12 @@ export default function RoomPage() {
                     onPress={leaveRoom}
                     className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold px-3 sm:px-6 py-2 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 ease-in-out flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 sm:h-5 sm:w-5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
                       <path d="M16 13v-2H7V8l-5 4 5 4v-3z" />
                       <path d="M20 3h-8a2 2 0 00-2 2v4h2V5h8v14h-8v-4h-2v4a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2z" />
                     </svg>
@@ -1555,8 +1558,8 @@ export default function RoomPage() {
               ? 'fixed top-16 left-2 right-2 bottom-2 sm:top-20 sm:left-4 sm:right-4 sm:bottom-4 md:top-24 md:left-6 md:right-6 md:bottom-6 lg:inset-auto z-[60] lg:z-0 flex flex-col lg:w-[380px] xl:w-[420px]'
               : 'hidden lg:flex lg:w-12'
           }
-          bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 
-          ring-1 ring-white/10 dark:ring-black/20 overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out 
+          bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30
+          ring-1 ring-white/10 dark:ring-black/20 overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.15)] transition-all duration-300 ease-in-out
           lg:bg-white/80 lg:dark:bg-gray-900/80 lg:backdrop-blur-md lg:shadow-2xl
           max-h-screen lg:max-h-none w-auto
         `}
@@ -1738,7 +1741,12 @@ export default function RoomPage() {
                               <span className="text-gray-800 dark:text-gray-200 truncate flex-1 text-xs md:text-sm">
                                 {linguaSelecionada?.label}
                               </span>
-                              <svg className="w-3 h-3 md:w-4 md:h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg
+                                className="w-3 h-3 md:w-4 md:h-4 text-gray-500"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                               </svg>
                             </motion.button>
@@ -1758,7 +1766,11 @@ export default function RoomPage() {
                                     onChange={(e) => setLanguagesFilter(e.target.value)}
                                     ref={languagesFilterRef}
                                     size="sm"
-                                    classNames={{ inputWrapper: 'bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border-0 rounded-t-xl', input: 'text-xs md:text-sm' }}
+                                    classNames={{
+                                      inputWrapper:
+                                        'bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border-0 rounded-t-xl',
+                                      input: 'text-xs md:text-sm',
+                                    }}
                                     onKeyDown={(e) => {
                                       if (e.key === 'ArrowDown') {
                                         const nextIndex = ((selectedIndex ?? 0) + 1) % filteredLanguages.length;
@@ -1767,7 +1779,9 @@ export default function RoomPage() {
                                         const item = list?.children[nextIndex] as HTMLElement;
                                         if (item) item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                                       } else if (e.key === 'ArrowUp') {
-                                        const prevIndex = ((selectedIndex ?? 0) - 1 + filteredLanguages.length) % filteredLanguages.length;
+                                        const prevIndex =
+                                          ((selectedIndex ?? 0) - 1 + filteredLanguages.length) %
+                                          filteredLanguages.length;
                                         setSelectedIndex(prevIndex);
                                         const list = document.querySelector('.custom-scrollbars');
                                         const item = list?.children[prevIndex] as HTMLElement;
@@ -1781,15 +1795,28 @@ export default function RoomPage() {
                                   />
                                   <ul className="py-1 h-[15rem] md:h-[17rem] overflow-y-scroll custom-scrollbars text-small">
                                     {filteredLanguages.map((idioma, index) => (
-                                      <motion.li key={idioma.value} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.05 }}>
+                                      <motion.li
+                                        key={idioma.value}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                      >
                                         <button
-                                          onClick={() => { handleLanguageChange(idioma.value); setIsOpen(false); setLanguagesFilter(''); }}
+                                          onClick={() => {
+                                            handleLanguageChange(idioma.value);
+                                            setIsOpen(false);
+                                            setLanguagesFilter('');
+                                          }}
                                           className={`block w-full px-4 py-3 hover:bg-blue-500/10 dark:hover:bg-blue-400/10 text-left transition-colors duration-200 ${index === selectedIndex ? 'bg-blue-500/20 dark:bg-blue-400/20 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}
                                         >
                                           <div className="flex items-center flex-wrap gap-1">
                                             <CountryFlag flag={idioma.flag} />
-                                            <span className="ml-2 font-medium text-sm md:text-base">{idioma.label}</span>
-                                            <p className="ml-2 text-tiny text-gray-500 dark:text-gray-400 hidden md:block">{idioma.description}</p>
+                                            <span className="ml-2 font-medium text-sm md:text-base">
+                                              {idioma.label}
+                                            </span>
+                                            <p className="ml-2 text-tiny text-gray-500 dark:text-gray-400 hidden md:block">
+                                              {idioma.description}
+                                            </p>
                                           </div>
                                         </button>
                                       </motion.li>
@@ -1798,7 +1825,9 @@ export default function RoomPage() {
                                 </div>
                               )}
                             </motion.div>
-                            {isOpen && <div className="fixed inset-0" onClick={() => setIsOpen(false)} style={{ zIndex: 99 }} />}
+                            {isOpen && (
+                              <div className="fixed inset-0" onClick={() => setIsOpen(false)} style={{ zIndex: 99 }} />
+                            )}
                           </div>
                         </div>
                       </motion.div>
@@ -1827,29 +1856,49 @@ export default function RoomPage() {
                           transition={{ delay: index * 0.1 }}
                         >
                           <div className="relative flex-shrink-0">
-                            <Image src={user.avatar} alt={user.apelido} width={50} height={50} className={`md:w-[60px] md:h-[60px] rounded-full border-2 p-1 md:p-2 bg-white dark:bg-transparent dark:invert-0 invert shadow-lg`} style={{ borderColor: user.color, backgroundColor: user.color }} />
+                            <Image
+                              src={user.avatar}
+                              alt={user.apelido}
+                              width={50}
+                              height={50}
+                              className={`md:w-[60px] md:h-[60px] rounded-full border-2 p-1 md:p-2 bg-white dark:bg-transparent dark:invert-0 invert shadow-lg`}
+                              style={{ borderColor: user.color, backgroundColor: user.color }}
+                            />
                           </div>
                           <div className="flex flex-col min-w-0 flex-1">
-                            <span className="text-sm md:text-medium font-medium flex items-center gap-1 text-gray-800 dark:text-gray-200 truncate" style={{ color: user.color }}>
+                            <span
+                              className="text-sm md:text-medium font-medium flex items-center gap-1 text-gray-800 dark:text-gray-200 truncate"
+                              style={{ color: user.color }}
+                            >
                               {user.apelido}
                             </span>
-                            <span className="text-xs md:text-tiny text-gray-600 dark:text-gray-400">{user.host ? t('chat.usuarios_online.anfitriao') : t('chat.usuarios_online.convidado')}</span>
+                            <span className="text-xs md:text-tiny text-gray-600 dark:text-gray-400">
+                              {user.host ? t('chat.usuarios_online.anfitriao') : t('chat.usuarios_online.convidado')}
+                            </span>
                           </div>
                           {isHost && user.userToken !== userData?.userToken && (
-                            <button onClick={() => requestKickUser(user.userToken, user.apelido)} className="ml-auto px-2 py-1 text-xs rounded-md bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400 transition-colors" aria-label={`Expulsar ${user.apelido}`}>
+                            <button
+                              onClick={() => requestKickUser(user.userToken, user.apelido)}
+                              className="ml-auto px-2 py-1 text-xs rounded-md bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:text-red-400 transition-colors"
+                              aria-label={`Expulsar ${user.apelido}`}
+                            >
                               Expulsar
                             </button>
                           )}
                         </motion.div>
                       ))
                     ) : (
-                      <motion.div className="text-center p-4 text-gray-500 dark:text-gray-400" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                      <motion.div
+                        className="text-center p-4 text-gray-500 dark:text-gray-400"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
                         {t('chat.usuarios_online.nenhum_conectado')}
                       </motion.div>
                     )}
                   </div>
                 </motion.div>
-                
               </>
             )}
           </div>

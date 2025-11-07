@@ -6,6 +6,8 @@ const Section = React.memo(({ children, className }: SectionProps) => {
   return <div className={className}>{children}</div>;
 });
 
+Section.displayName = 'SectionMemo';
+
 type ChatCompound = React.MemoExoticComponent<({ children, className }: SectionProps) => React.ReactElement> & {
   Header: typeof Section;
   Body: typeof Section;
@@ -18,6 +20,8 @@ type ChatCompound = React.MemoExoticComponent<({ children, className }: SectionP
 const ChatComponentBase = React.memo(({ children, className }: SectionProps) => {
   return <div className={className}>{children}</div>;
 });
+
+ChatComponentBase.displayName = 'ChatComponentBase';
 
 const ChatComponent = ChatComponentBase as ChatCompound;
 ChatComponent.Header = Section;
