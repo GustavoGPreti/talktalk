@@ -5,14 +5,21 @@ if (!TRANSCRIPTION_API_KEY) throw new Error('TRANSCRIPTION_API_KEY is not define
 
 export async function transcriptAudio({ audioBase64, lingua }: { audioBase64: string; lingua: any }) {
   const form = new FormData();
-  console.log(lingua);
   form.append('base64File', audioBase64);
   form.append('lingua', lingua.value);
 
-  const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-    ? `${process.env.NEXT_PUBLIC_PROTOCOL!}://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : 'http://localhost:3000';
-  const res = await fetch(`${baseUrl}/api/transcription`, {
+  let baseUrl = 'http://localhost:3000';
+
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    baseUrl = process.env.NEXT_PUBLIC_API_URL;
+  } else if (process.env.NEXT_PUBLIC_VERCEL_URL) {
+    const protocol = process.env.NEXT_PUBLIC_PROTOCOL || 'https';
+    baseUrl = `${protocol}://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+  }
+
+  const url = `${baseUrl}/api/transcription`;
+
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${TRANSCRIPTION_API_KEY}`,
@@ -21,10 +28,9 @@ export async function transcriptAudio({ audioBase64, lingua }: { audioBase64: st
   });
 
   if (!res.ok) {
-    console.log(res.status);
     return { status: res.status };
-    // throw new Error(`Transcription failed: ${res.status} ${err}`);
   }
+
   const response = await res.json();
   if (!response.translated || response.translated === '') {
     return response.transcription;

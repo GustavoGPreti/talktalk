@@ -502,7 +502,6 @@ io.on('connection', (socket) => {
 
   socket.on('sendMessage', async (message, userToken, color, apelido, avatar, room, lingua, type) => {
     const actualDate = new Date().toISOString();
-    console.log('[SERVER] Mensagem recebida: ' + message);
     try {
       let cryptoApiBaseUrlSendMessage;
       if (process.env.NEXT_PUBLIC_VERCEL_URL) {
