@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "foreignKeys"
+}
+
+model Salas {
+  codigoSala        String           @id @unique
+  pessoasConectadas Int              @default(0)
+  updateAt          DateTime         @updatedAt
+  token             String
+  hostToken         String
+  Mensagens         Mensagens[]
+  Salas_Usuarios    Salas_Usuarios[]
+  MensagensAudios   MensagensAudios[]
+}
+
+model Salas_Usuarios {
+  codigoSala  String
+  userData    String   @db.VarChar(400)
+  host        Boolean  @default(false)
+  sala        Salas    @relation(fields: [codigoSala], references: [codigoSala])
+  @@id([codigoSala, userData])
+}
+
+model Mensagens {
+  id                 Int      @id @default(autoincrement())
+  mensagem           String   @db.VarChar(1000)
+  mensagemTraduzida  String?  @db.VarChar(1000)
+  usuario            String
+  dataEnvio          DateTime
+  codigoSala         String
+  apelido            String?
+  avatar             String?
+  linguaOriginal     String?  @default("pt")
+  sala               Salas    @relation(fields: [codigoSala], references: [codigoSala])
+}
+
+model MensagensAudios {
+  id         Int      @id @default(autoincrement())
+  audioUrl   String   @db.VarChar(400)
+  usuario    String
+  dataEnvio  DateTime
+  codigoSala String
+  lingua     String?  @default("pt")
+  sala       Salas    @relation(fields: [codigoSala], references: [codigoSala])
+}

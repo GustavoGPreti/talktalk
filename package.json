@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "concurrently \"next dev -p 3000\" \"dotenv -e ./.env.development -- nodemon server/index.js\"",
     "dev:simple": "next dev -p 3000",
-    "dev:full": "concurrently \"next dev -p 3000\" \"dotenv -e ./.env.development -- nodemon server/index.js\"",
     "dev:https": "concurrently \"next dev --experimental-https\" \"dotenv -e ./.env.development -- nodemon server/index.js\"",
     "dev:nonodemon": "next dev",
     "build": "next build",

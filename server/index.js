@@ -5,16 +5,16 @@ require('dotenv').config({ path: '../.env' });
 
 const express = require('express');
 const app = express();
-const https = require("https");
+const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const cors = require('cors');
 const { getTranslation } = require('./translations');
 
-
 let prisma;
+
 try {
-  const { PrismaClient } = require('../node_modules/@prisma/client');
+  const { PrismaClient } = require('@prisma/client');
   prisma = new PrismaClient({
     log: ['error'],
   });
@@ -57,13 +57,16 @@ app.use(cors());
 
 const io = require('socket.io')(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production'
-      ? ['https://talktalkchat.com.br']
-      : [
-          process.env.NEXT_PUBLIC_VERCEL_URL ? `${process.env.NEXT_PUBLIC_PROTOCOL}://${process.env.NEXT_PUBLIC_VERCEL_URL}` : 'http://localhost:3000',
-          'http://127.0.0.1:3000',
-          'http://localhost:3000'
-        ],
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? ['https://talktalkchat.com.br']
+        : [
+            process.env.NEXT_PUBLIC_VERCEL_URL
+              ? `${process.env.NEXT_PUBLIC_PROTOCOL}://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+              : 'http://localhost:3000',
+            'http://127.0.0.1:3000',
+            'http://localhost:3000',
+          ],
     methods: ['GET', 'POST'],
     credentials: true,
     allowedHeaders: ['my-custom-header'],
@@ -93,7 +96,8 @@ io.on('connection', (socket) => {
   console.log('Novo cliente conectado:', socket.id);
 
   let userRoom = null;
-  let userData = null;  socket.on('join-room', async (room, userDataParam, userLanguage = 'pt-BR') => {
+  let userData = null;
+  socket.on('join-room', async (room, userDataParam, userLanguage = 'pt-BR') => {
     try {
       if (!prisma) {
         console.error('[DEBUG] Banco de dados não disponível');
@@ -149,15 +153,14 @@ io.on('connection', (socket) => {
         const agent = new http.Agent({ rejectUnauthorized: false });
         fetchOptionsEncrypt.agent = agent;
       }
-      const encryptResponse = await import('node-fetch').then(({ default: fetch }) =>
-        fetch(cryptoApiEndpoint, fetchOptionsEncrypt)
-      );
+      const fetchMod = await import('node-fetch');
+      const encryptResponse = await fetchMod.default(cryptoApiEndpoint, fetchOptionsEncrypt);
 
       if (!encryptResponse.ok) {
         console.error('[DEBUG] Erro na resposta da API de criptografia:', {
           status: encryptResponse.status,
           statusText: encryptResponse.statusText,
-          url: cryptoApiEndpoint
+          url: cryptoApiEndpoint,
         });
         throw new Error(`Crypto API error: ${encryptResponse.status} ${encryptResponse.statusText}`);
       }
@@ -173,12 +176,12 @@ io.on('connection', (socket) => {
         socket.emit('error', getTranslation(userLanguage, 'roomNotFound'));
         return;
       }
-  const isHost = parsedUserData.userToken === sala.hostToken;
-  // Expose minimal identity metadata on the socket for later checks
-  socket.data.userToken = parsedUserData.userToken;
-  socket.data.isHost = isHost;
-  socket.data.room = room;
-      
+      const isHost = parsedUserData.userToken === sala.hostToken;
+      // Expose minimal identity metadata on the socket for later checks
+      socket.data.userToken = parsedUserData.userToken;
+      socket.data.isHost = isHost;
+      socket.data.room = room;
+
       const isUserInRoom = await prisma.salas_Usuarios.findUnique({
         where: { codigoSala_userData: { codigoSala: room, userData: encryptResult.data } },
       });
@@ -209,7 +212,7 @@ io.on('connection', (socket) => {
       const roomUsers = await prisma.salas_Usuarios.findMany({
         where: { codigoSala: room },
       });
-      const isUserAlreadyInRoom = roomUsers.some(user => user.userData === encryptResult.data);
+      const isUserAlreadyInRoom = roomUsers.some((user) => user.userData === encryptResult.data);
       if (!isUserAlreadyInRoom && roomUsers.length >= 4) {
         socket.emit('error', getTranslation(userLanguage, 'roomFull'));
         return;
@@ -236,15 +239,14 @@ io.on('connection', (socket) => {
             const agent = new http.Agent({ rejectUnauthorized: false });
             fetchOptionsDecrypt.agent = agent;
           }
-          const decryptResponse = await import('node-fetch').then(({ default: fetch }) =>
-            fetch(cryptoApiEndpoint, fetchOptionsDecrypt)
-          );
+          const fetchMod = await import('node-fetch');
+          const decryptResponse = await fetchMod.default(cryptoApiEndpoint, fetchOptionsDecrypt);
 
           if (!decryptResponse.ok) {
             console.error('[DEBUG] Erro na resposta da API de descriptografia:', {
               status: decryptResponse.status,
               statusText: decryptResponse.statusText,
-              url: cryptoApiEndpoint
+              url: cryptoApiEndpoint,
             });
             throw new Error(`Decrypt API error: ${decryptResponse.status} ${decryptResponse.statusText}`);
           }
@@ -262,15 +264,16 @@ io.on('connection', (socket) => {
 
       await prisma.salas.update({
         where: { codigoSala: room },
-        data: { updateAt: new Date() }
+        data: { updateAt: new Date() },
       });
-      
+
       io.to(room).emit('users-update', decryptedUsers);
     } catch (error) {
       console.error('[DEBUG] Erro ao processar entrada do usuário:', error);
       socket.emit('error', getTranslation(userLanguage, 'errorJoiningRoom'));
     }
-  });  socket.on('disconnect', async () => {
+  });
+  socket.on('disconnect', async () => {
     if (userRoom && userData && prisma) {
       try {
         await prisma.salas_Usuarios.deleteMany({
@@ -282,7 +285,7 @@ io.on('connection', (socket) => {
 
         await prisma.salas.update({
           where: { codigoSala: userRoom },
-          data: { updateAt: new Date() }
+          data: { updateAt: new Date() },
         });
 
         socket.to(userRoom).emit('user-disconnected', userData);
@@ -323,12 +326,11 @@ io.on('connection', (socket) => {
                 fetchOptionsDecrypt.agent = agent;
               }
 
-              const decryptResponse = await import('node-fetch').then(({ default: fetch }) =>
-                fetch(cryptoApiEndpoint, fetchOptionsDecrypt)
-              );
+              const fetchMod = await import('node-fetch');
+              const decryptResponse = await fetchMod.default(cryptoApiEndpoint, fetchOptionsDecrypt);
 
               if (!decryptResponse.ok) {
-                console.error('[DEBUG] Erro na resposta da API de descriptografia no disconnect:', {
+                console.error('[DEBUG] Erro ao descriptografar userData:', {
                   status: decryptResponse.status,
                   statusText: decryptResponse.statusText,
                 });
@@ -347,8 +349,8 @@ io.on('connection', (socket) => {
           })
         );
 
-        const validDecryptedUsers = decryptedUsers.filter(user => user !== null);
-        
+        const validDecryptedUsers = decryptedUsers.filter((user) => user !== null);
+
         io.to(userRoom).emit('users-update', validDecryptedUsers);
       } catch (error) {
         console.error('Erro ao processar desconexão:', error);
@@ -366,7 +368,8 @@ io.on('connection', (socket) => {
   socket.on('room:privacy', async ({ room, private: isPrivate }) => {
     try {
       if (!socket.data?.isHost || socket.data?.room !== room) return;
-      if (isPrivate) privateRooms.add(room); else privateRooms.delete(room);
+      if (isPrivate) privateRooms.add(room);
+      else privateRooms.delete(room);
       io.to(room).emit('room:privacy-changed', { private: !!isPrivate });
     } catch (e) {
       console.error('Erro ao alterar privacidade da sala:', e);
@@ -402,10 +405,16 @@ io.on('connection', (socket) => {
               for (const rec of roomUsers) {
                 let fetchOptionsDecrypt = {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.CRYPTO_API_KEY}` },
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${process.env.CRYPTO_API_KEY}`,
+                  },
                   body: JSON.stringify({ data: rec.userData, action: 'decryptUserData' }),
                 };
-                if (process.env.NODE_ENV === 'development' && (cryptoApiEndpoint.startsWith('http://localhost') || cryptoApiEndpoint.startsWith('http://127.0.0.1'))) {
+                if (
+                  process.env.NODE_ENV === 'development' &&
+                  (cryptoApiEndpoint.startsWith('http://localhost') || cryptoApiEndpoint.startsWith('http://127.0.0.1'))
+                ) {
                   const http = require('http');
                   const agent = new http.Agent({ rejectUnauthorized: false });
                   fetchOptionsDecrypt.agent = agent;
@@ -419,7 +428,9 @@ io.on('connection', (socket) => {
                 }
               }
               if (targetEncryptedUserData) {
-                await prisma.salas_Usuarios.deleteMany({ where: { codigoSala: room, userData: targetEncryptedUserData } });
+                await prisma.salas_Usuarios.deleteMany({
+                  where: { codigoSala: room, userData: targetEncryptedUserData },
+                });
                 await prisma.salas.update({ where: { codigoSala: room }, data: { updateAt: new Date() } });
               }
             }
@@ -429,7 +440,9 @@ io.on('connection', (socket) => {
           // Notify and disconnect
           client.emit('kicked');
           client.leave(room);
-          try { client.disconnect(true); } catch {}
+          try {
+            client.disconnect(true);
+          } catch {}
 
           // Refresh users list for the room
           try {
@@ -449,10 +462,17 @@ io.on('connection', (socket) => {
                   try {
                     let fetchOptionsDecrypt = {
                       method: 'POST',
-                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.CRYPTO_API_KEY}` },
+                      headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${process.env.CRYPTO_API_KEY}`,
+                      },
                       body: JSON.stringify({ data: user.userData, action: 'decryptUserData' }),
                     };
-                    if (process.env.NODE_ENV === 'development' && (cryptoApiEndpoint.startsWith('http://localhost') || cryptoApiEndpoint.startsWith('http://127.0.0.1'))) {
+                    if (
+                      process.env.NODE_ENV === 'development' &&
+                      (cryptoApiEndpoint.startsWith('http://localhost') ||
+                        cryptoApiEndpoint.startsWith('http://127.0.0.1'))
+                    ) {
                       const http = require('http');
                       const agent = new http.Agent({ rejectUnauthorized: false });
                       fetchOptionsDecrypt.agent = agent;
@@ -513,19 +533,19 @@ io.on('connection', (socket) => {
         const agent = new http.Agent({ rejectUnauthorized: false });
         fetchOptionsMessage.agent = agent;
       }
-      const encryptedMessage = await import('node-fetch')
-        .then(({ default: fetch }) => fetch(cryptoApiEndpointSendMessage, fetchOptionsMessage))
-        .then((res) => {
-          if (!res.ok) {
-            console.error('[DEBUG] Erro na resposta da API de criptografia de mensagem:', {
-              status: res.status,
-              statusText: res.statusText,
-              url: cryptoApiEndpointSendMessage
-            });
-            throw new Error(`Message crypto API error: ${res.status} ${res.statusText}`);
-          }
-          return res.json();
+      const fetchMod = await import('node-fetch');
+      const res = await fetchMod.default(cryptoApiEndpointSendMessage, fetchOptionsMessage);
+
+      if (!res.ok) {
+        console.error('[DEBUG] Erro na resposta da API de criptografia de mensagem:', {
+          status: res.status,
+          statusText: res.statusText,
+          url: cryptoApiEndpointSendMessage,
         });
+        throw new Error(`Message crypto API error: ${res.status} ${res.statusText}`);
+      }
+
+      const encryptedMessage = await res.json();
 
       if (type !== 'audio') {
         await prisma.mensagens.create({
@@ -593,9 +613,8 @@ async function checkRooms() {
       return;
     }
 
-
     const emptyRoomsThreshold = 1000 * 60 * 5;
-    
+
     const allRooms = await prisma.salas.findMany();
 
     for (const room of allRooms) {
@@ -606,9 +625,8 @@ async function checkRooms() {
 
         if (roomUsers.length === 0) {
           const timeSinceUpdate = Date.now() - new Date(room.updateAt).getTime();
-          
+
           if (timeSinceUpdate > emptyRoomsThreshold) {
-            
             await prisma.$transaction([
               prisma.mensagens.deleteMany({
                 where: { codigoSala: room.codigoSala },
@@ -620,13 +638,11 @@ async function checkRooms() {
                 where: { codigoSala: room.codigoSala },
               }),
             ]);
-            
           } else {
           }
         } else {
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     }
 
     const inactivityThreshold = 1000 * 60 * 60 * 24;
@@ -639,7 +655,6 @@ async function checkRooms() {
     });
 
     if (oldInactiveRooms.length > 0) {
-      
       for (const room of oldInactiveRooms) {
         try {
           await prisma.$transaction([
